@@ -32,13 +32,13 @@ const config = {
 
   // Set the production url of your site here
   url: 'https://datachamp-processamentos-e-servicos.github.io',
-  baseUrl: '/docusaurus/',
+  baseUrl: '/interno/',
   trailingSlash: true,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'datachamp-processamentos-e-servicos', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  projectName: 'interno', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
@@ -58,7 +58,7 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl:
-            'https://github.com/datachamp-processamentos-e-servicos/docusaurus/blob/main/',
+            'https://github.com/datachamp-processamentos-e-servicos/interno/blob/main/',
         },
         theme: {
           customCss: './src/css/custom.css',
