@@ -10,7 +10,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Datachamp Docs',
+  title: 'Datachamp Core',
   tagline: 'Dinosaurs are cool',
   favicon: 'img/favicon.ico',
 
@@ -78,7 +78,7 @@ const config = {
       algolia: {
         appId: 'ZR9E3OBYZK',
         apiKey: '959f69400cf777d4fe4aa03e04d38fd9',
-        indexName: 'DatachampDocs',
+        indexName: 'DatachampCore',
         translations: {
           button: {
             buttonText: 'Como podemos te ajudar? Pesquise aqui...',

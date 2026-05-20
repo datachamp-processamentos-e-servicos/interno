@@ -66,7 +66,7 @@ export default function InPageSearch() {
         const response = await client.search({
           requests: [
             {
-              indexName: 'DatachampDocs',
+              indexName: 'DatachampCore',
               query: q,
               hitsPerPage: 100,
               attributesToSnippet: ['content:20'],

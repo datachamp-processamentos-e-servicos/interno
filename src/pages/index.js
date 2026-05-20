@@ -11,7 +11,7 @@ export default function Home() {
 
   return (
     <Layout
-      title="Datachamp Docs — Homepage"
+      title="Datachamp Intern — Homepage"
       description="Repositório central de documentação para todos os aplicativos Datachamp. Tudo que você precisa, num só lugar."
     >
       <main id="main-content">

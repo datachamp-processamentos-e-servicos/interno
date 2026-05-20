@@ -185,7 +185,7 @@ body {
 }
 
 .navbar__title::after {
-  content: 'Docs';
+  content: 'Core';
   font-weight: 400;
 }
 
