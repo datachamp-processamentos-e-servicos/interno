@@ -1,15 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --prim-navy-950: #0a1f5c;
-  --prim-navy-900: #0f2452;
-  --prim-navy-800: #143380;
-  --prim-navy-700: #0f40b8;
-  --prim-blue-600: #1a59e5;
-  --prim-blue-500: #3d7dfa;
-  --prim-blue-300: #70a3ff;
-  --prim-slate-50: #f0f7ff;
-  --prim-slate-400: #59667a;
+
+  --prim-navy-950: #272a31;
+  --prim-navy-900: #1a1d24;
+  --prim-navy-800: #252a33;
+  --prim-navy-700: #353c48;
+
+  --prim-blue-600: #4a5565;
+  --prim-blue-500: #667387;
+  --prim-blue-300: #a4afbf;
+
+  --prim-slate-50: #f4f6f8;
+  --prim-slate-400: #6b7280;
   --prim-white: #ffffff;
   --color-bg-dark: var(--prim-navy-950);
   --color-bg-surface: var(--prim-slate-50);

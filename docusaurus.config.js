@@ -93,8 +93,12 @@ const config = {
         },
         items: [
           {
-            to: '/docs/category/sentus',
-            label: 'Sentus',
+            to: '/docs/category/suporte',
+            label: 'Suporte',
+          },
+          {
+            to: '/docs/category/dev',
+            label: 'Dev',
           },
           {
             type: 'search',

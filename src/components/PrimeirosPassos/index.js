@@ -5,8 +5,8 @@ import styles from './styles.module.css';
 const steps = [
   {
     id: 'acesso',
-    label: 'Como acessar o Sentus',
-    to: '/docs/sentus/Acesso#como-acessar-o-sentus',
+    label: 'Não sabe como chegou aqui?',
+    to: 'https://datachamp-processamentos-e-servicos.github.io/docusaurus/',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" strokeWidth="2"
@@ -16,22 +16,7 @@ const steps = [
         <line x1="15" y1="12" x2="3" y2="12" />
       </svg>
     ),
-  },
-  {
-    id: 'cadastros',
-    label: 'Cadastros básicos',
-    to: '/docs/sentus/cadastro-de-Itens',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="12" y1="18" x2="12" y2="12" />
-        <line x1="9" y1="15" x2="15" y2="15" />
-      </svg>
-    ),
-  },
+  }
 ];
 
 function StepCard({ label, to, icon }) {
@@ -73,7 +58,7 @@ export default function GettingStarted() {
       <div className={styles.inner}>
         <div className={`${styles.header} ${visible ? styles.headerVisible : ''}`}>
           <h2 className={styles.title}>
-            Dando os seus primeiros passos?
+            Alguma dúvia?
           </h2>
         </div>
         <div className={styles.grid}>

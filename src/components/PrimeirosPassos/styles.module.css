@@ -42,10 +42,8 @@
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 480px));
-  gap: var(--space-8);
-  justify-content: center;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .card {
