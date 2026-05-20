@@ -1,8 +1,8 @@
 {
-  "label": "Tutorial - Basics",
-  "position": 3,
+  "label": "Tutoriais Básicos",
+  "position": 100,
   "link": {
     "type": "generated-index",
-    "description": "5 minutes to learn the most important Docusaurus concepts."
+    "description": "Tutoriais básicos para gerar e postar artigos"
   }
 }
