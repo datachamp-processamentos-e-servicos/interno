@@ -115,15 +115,6 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Documentos',
-            items: [
-              {
-                label: 'Sentus',
-                to: '/docs/category/sentus',
-              },
-            ],
-          },
-          {
             title: 'Fale Conosco',
             items: [
               {
