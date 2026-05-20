@@ -2,44 +2,185 @@
 sidebar_position: 1
 ---
 
-GRAXA
+# Criar uma página
 
-# Create a Page
+## Introdução
 
-Add **Markdown or React** files to `src/pages` to create a **standalone page**:
+Este tutorial mostra como criar e publicar novos artigos no repositório de documentação utilizando:
 
-- `src/pages/index.js` → `localhost:3000/`
-- `src/pages/foo.md` → `localhost:3000/foo`
-- `src/pages/foo/bar.js` → `localhost:3000/foo/bar`
+- GitHub
+- Docusaurus
+- Arquivos `.mdx`
 
-## Create your first React Page
+---
 
-Create a file at `src/pages/my-react-page.js`:
+## O que é MDX?
 
-```jsx title="src/pages/my-react-page.js"
-import React from 'react';
-import Layout from '@theme/Layout';
+MDX é um formato que mistura:
 
-export default function MyReactPage() {
-  return (
-    <Layout>
-      <h1>My React page</h1>
-      <p>This is a React page</p>
-    </Layout>
-  );
-}
+- Markdown
+- Componentes React (opcional)
+
+Na prática, para o suporte, ele funciona como um arquivo de texto formatado.
+
+---
+
+## Estrutura dos artigos
+
+Os artigos ficam dentro da pasta:
+
+```bash
+/docs/(pasta desejada)
 ```
 
-A new page is now available at [http://localhost:3000/my-react-page](http://localhost:3000/my-react-page).
+Exemplo:
 
-## Create your first Markdown Page
-
-Create a file at `src/pages/my-markdown-page.md`:
-
-```mdx title="src/pages/my-markdown-page.md"
-# My Markdown page
-
-This is a Markdown page
+```bash
+/docs/sentus/tutorial-login.mdx
 ```
 
-A new page is now available at [http://localhost:3000/my-markdown-page](http://localhost:3000/my-markdown-page).
+---
+
+## Como criar um novo artigo no GitHub
+
+### 1. Acesse o repositório
+
+Abra o repositório no GitHub.
+
+Exemplo:
+
+```txt
+https://github.com/datachamp-processamentos-e-servicos/docusaurus/tree/main/docs
+```
+
+---
+
+### 2. Entre na pasta desejada
+
+Dentro do repositório descrito acima, selecione a pasta desejada:
+
+Exemplo:
+
+```bash
+sentus/
+```
+
+::info
+É possível também gerar arquivos na pasta ´/doc´
+::
+
+---
+
+### 3. Clique em “Add file”
+
+No canto superior direito:
+
+```txt
+Add file → Create new file
+```
+
+---
+
+### 4. Defina o nome do arquivo
+
+O arquivo obrigatóriamente deve terminar com `.mdx`
+
+Exemplo:
+
+```bash
+como-resetar-senha.mdx
+```
+
+Use nomes:
+
+- sem espaços
+- sem acentos
+- separados por hífen
+
+✅ Correto:
+
+```bash
+como-resetar-senha.mdx
+```
+
+❌ Errado:
+
+```bash
+Como Resetar Senha.mdx
+```
+
+---
+
+## Estrutura básica de um artigo
+
+Copie este modelo:
+
+```mdx
+---
+sidebar_position: 1 //responsável pela posição do artigo no menu lateral
+---
+
+# Como resetar senha
+
+## Como resetar senha
+
+Este tutorial explica como resetar a senha do sistema.
+
+### Passo 1
+
+Acesse a tela de login.
+
+### Passo 2
+
+Clique em:
+
+- Esqueci minha senha
+
+### Passo 3
+
+Digite seu e-mail.
+
+---
+
+Pronto! Sua senha será redefinida.
+```
+
+## Postando o artigo
+
+Para postar o artigo criado para o site, deve-se fazer o commit do arquivo.
+
+### Passo 1:
+
+Na parte superior direita, clique no botão "Commit Changes...".
+
+### Passo 2:
+
+Um diálogo será mostrado em tela, é necessário preencher apenas o campo "Commit message"
+com uma descrição simples do que está sendo enviado.
+
+O campo "Extended description" é completamente opcional, serve para adicionar uma descrição
+secundária para o commit realizado. 
+
+:::tip[Dica]
+
+É possível deixar com que a IA do Github complete a mensagem do commit, é só esperal alguns segundos.
+O único problema é que a mensagem é gerada em inglês.
+Caso a mensagem não esteja muito de acordo, pode-se altera-la manualmente ou clicar no ícone no fila do campo que a própria
+IA gera uma nova mensagem.
+
+:::
+
+## Passo 3:
+
+Garantir que a opção "Commit directly to the main branch" esteja marcada.
+
+Esta opção é responsável por fazer o commit diretamente a branch principal, se ela nao estiver marcada
+o Github irá fazer o commit em uma branch nova e, por causa disso, não irá postar no site.
+
+# Passo 4:
+
+Clique no botão verde na parte inferior do dialogo "Commit changes".
+
+Após alguns segundos a alteração será postada no site corretamente.
+
+

@@ -3,6 +3,40 @@
   <component name="ChangeListManager">
     <list default="true" id="35e9638b-43d0-482f-ac43-f693d812740b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/404.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/404.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/css/styles.238b5b31.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/17896441.4cbe87ae.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/18c41134.e8289dcc.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/25aee49d.e670c6bc.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/285253cb.488d8962.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/3e15ee55.c39cb3ce.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/41f7977f.d2952d31.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/440.8a07c4eb.js" beforeDir="false" afterPath="$PROJECT_DIR$/build/assets/js/440.8a07c4eb.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/60c57942.fe336b1d.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/af321b0b.299b5c27.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/bcf87191.7e0cf2d1.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/c4f5d8e4.e0aca85c.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/c88346e3.96647d12.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/f8409a7e.aabce7f7.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/main.5effa2c3.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/assets/js/runtime~main.88828d55.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/blog/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/blog/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/category/sentus/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/category/sentus/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/category/tutorial---basics/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/category/tutorial---basics/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/category/tutorial---extras/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/category/tutorial---extras/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/intro/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/intro/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/sentus/Acesso/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/sentus/Acesso/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/sentus/cadastro-de-Itens/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/sentus/cadastro-de-Itens/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-basics/congratulations/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-basics/congratulations/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-basics/create-a-blog-post/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-basics/create-a-blog-post/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-basics/create-a-document/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-basics/create-a-document/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-basics/create-a-page/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-basics/create-a-page/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-basics/deploy-your-site/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-basics/deploy-your-site/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-basics/markdown-features/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-basics/markdown-features/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-extras/manage-docs-versions/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-extras/manage-docs-versions/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/docs/tutorial-extras/translate-your-site/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/docs/tutorial-extras/translate-your-site/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/search/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/search/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docusaurus.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/docusaurus.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -25,18 +59,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/datachamp/projects/docusaurus",
-    "settings.editor.selected.configurable": "actions.on.save"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/datachamp/projects/interno&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration default="true" type="JetRunConfigurationType">
       <module name="docusaurus" />
