@@ -1,129 +1,225 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
-# Markdown Features
+# Comandos de edição
 
-Docusaurus supports **[Markdown](https://daringfireball.net/projects/markdown/syntax)** and a few **additional features**.
+## Introdução
 
-## Front Matter
+O MDX usa **Markdown** para formatar textos. Isso significa que você pode usar comandos simples para criar títulos, listas, links, códigos e muito mais.
 
-Markdown documents have metadata at the top called [Front Matter](https://jekyllrb.com/docs/front-matter/):
-
-```text title="my-doc.md"
-// highlight-start
 ---
-id: my-doc-id
-title: My document title
-description: My document description
-slug: /my-custom-url
----
-// highlight-end
 
-Markdown content
-```
+## Títulos
 
-## Headings {/* #my-heading-id */}
-
-Markdown headings are supported using the standard “#” syntax and are automatically added to the table of contents. The number of `#` corresponds to the heading level.
+Use `#` para criar títulos.
 
 ```md
-## Headings
-
-My text
+# Título principal (H1)
+## Subtítulo (H2)
+### Seção (H3)
+#### Seção menor (H4)
 ```
 
-### Heading Ids {/* #my-custom-id */}
+---
 
-Add `{/* #my-custom-id */}` after the heading text to assign it an explicit anchor id, used for linking.
+## Texto em destaque
+
+### Negrito
 
 ```md
-### Heading Ids {/_ #my-custom-id _/}
+**Texto em negrito**
 ```
+
+Resultado: **Texto em negrito**
+
+
+### Itálico
+
+```md
+*Texto em itálico*
+```
+
+Resultado: *Texto em itálico*
+
+
+### Riscado
+
+```md
+~~Texto riscado~~
+```
+
+Resultado: ~~Texto riscado~~
+
+---
+
+## Listas
+
+### Lista com marcadores
+
+```md
+- Item 1
+- Item 2
+- Item 3
+```
+
+
+### Lista numerada
+
+```md
+1. Primeiro item
+2. Segundo item
+3. Terceiro item
+```
+
+
+### Lista aninhada
+
+```md
+- Item principal
+  - Subitem
+    - Subsubitem
+```
+
+---
 
 ## Links
 
-Regular Markdown links are supported, using url paths or relative file paths.
+Os links podem ser criados utilizando caminhos absolutos ou relativos.
 
 ```md
-Let's see how to [Create a page](/create-a-page).
+//Caminho absoluto
+[Texto do link](https://google.com)
 ```
+Resultado: [Texto do link](https://google.com)
 
 ```md
-Let's see how to [Create a page](./create-a-page.mdx).
+//Caminho relativo
+[Texto do link](./(nome do arquivo .mdx a ser linkado)
 ```
+Resultado: [Texto do link](./create-a-page.mdx)
 
-**Result:** Let's see how to [Create a page](./create-a-page.mdx).
+**Obs:** No resultado do caminho relativo, foi utilizado o caminho do artigo de criação de página.
 
-## Images
+---
 
-Regular Markdown images are supported.
+## Imagens
 
-You can use absolute paths to reference images in the static directory (`static/img/docusaurus.png`):
+A mesma que os links possuem os caminhos absolutos e relátivos, isso se aplica aos caminhos das imagens.
 
 ```md
-![Docusaurus logo](/img/docusaurus.png)
+//Caminho absoluto
+![Descrição da imagem](https://www.datachamp.com.br/imagens/sentus_ico.webp)
 ```
-
-![Docusaurus logo](/img/docusaurus.png)
-
-You can reference images relative to the current file as well. This is particularly useful to colocate images close to the Markdown files using them:
+Resultado: ![Descrição da imagem](https://www.datachamp.com.br/imagens/sentus_ico.webp)
 
 ```md
-![Docusaurus logo](./img/docusaurus.png)
+//Caminho relativo
+![Descrição da imagem](./img/docusaurus.png)
 ```
 
-## Code Blocks
+Resultado: ![Descrição da imagem](./img/docusaurus.png)
 
-Markdown code blocks are supported with Syntax highlighting.
+:::info[Dica]
 
-````md
-```jsx title="src/components/HelloDocusaurus.js"
-function HelloDocusaurus() {
-  return <h1>Hello, Docusaurus!</h1>;
-}
-```
-````
-
-```jsx title="src/components/HelloDocusaurus.js"
-function HelloDocusaurus() {
-  return <h1>Hello, Docusaurus!</h1>;
-}
-```
-
-## Admonitions
-
-Docusaurus has a special syntax to create admonitions and callouts:
-
-```md
-:::tip[My tip]
-
-Use this awesome feature option
+Para padronizar e deixar o projeto melhor, é recomendado que quando for adicionar uma imagem, colocar a mesma no seguinte caminho:
+https://github.com/datachamp-processamentos-e-servicos/interno/tree/main/static/img. Dentro desta pasta /img, pode-se criar outras pastas
+para manter uma organização ainda maior. Para utiliza-las em um artigo, utilizar o caminho relativo desta página.
 
 :::
 
-:::danger[Take care]
+---
 
-This action is dangerous
+## Caixas de Destaque
 
+São usadas para destacar informações importantes dentro da documentação.
+
+Eles ajudam a chamar atenção para dicas, avisos e mensagens críticas.
+
+
+### Tip (Dica)
+
+```md
+:::
+Use isso para destacar informações úteis ou boas práticas.
 :::
 ```
 
-:::tip[My tip]
+### Info (Informação)
 
-Use this awesome feature option
-
+```md
 :::
-
-:::danger[Take care]
-
-This action is dangerous
-
+Este bloco é usado para informações gerais e contextuais.
 :::
+```
 
-## MDX and React Components
 
-[MDX](https://mdxjs.com/) can make your documentation more **interactive** and allows using any **React components inside Markdown**:
+### Warning (Aviso)
+
+```md
+:::
+Use este bloco para alertar sobre possíveis problemas ou cuidados.
+:::
+```
+
+### Danger (Perigo)
+
+```md
+:::
+Este bloco indica ações perigosas ou irreversíveis.
+:::
+```
+
+---
+
+## Inserindo vídeos do YouTube
+
+É possível adicionar vídeos do YouTube diretamente na documentação usando um componente pronto do Docusaurus.
+
+
+### Como importar
+
+Primeiro, importe o componente:
+
+```mdx
+import Youtube from '@site/src/components/Youtube';
+```
+
+
+### Como usar
+
+Depois, basta usar o componente informando o ID do vídeo:
+
+```mdx
+<Youtube id="NBOYISh5jC4" />
+```
+
+### O que é o ID do vídeo?
+
+O ID é a parte final da URL do YouTube.
+
+Exemplo:
+
+```txt
+https://www.youtube.com/watch?v=NBOYISh5jC4
+```
+
+O ID é:
+
+```txt
+NBOYISh5jC4
+```
+
+
+### Resultado
+
+O vídeo será exibido diretamente dentro da página da documentação.
+
+---
+
+## MDX e Componentes React
+
+O [MDX](https://mdxjs.com/) permite tornar sua documentação mais **interativa** e possibilita o uso de qualquer **componente React dentro do Markdown**.
 
 ```jsx
 export const Highlight = ({children, color}) => (
@@ -142,9 +238,9 @@ export const Highlight = ({children, color}) => (
   </span>
 );
 
-This is <Highlight color="#25c2a0">Docusaurus green</Highlight> !
+Este é o <Highlight color="#25c2a0">Docusaurus green</Highlight> !
 
-This is <Highlight color="#1877F2">Facebook blue</Highlight> !
+Este é o <Highlight color="#1877F2">Facebook blue</Highlight> !
 ```
 
 export const Highlight = ({children, color}) => (
@@ -163,6 +259,6 @@ export const Highlight = ({children, color}) => (
   </span>
 );
 
-This is <Highlight color="#25c2a0">Docusaurus green</Highlight> !
+Este é o <Highlight color="#25c2a0">Docusaurus green</Highlight> !
 
-This is <Highlight color="#1877F2">Facebook blue</Highlight> !
+Este é o <Highlight color="#1877F2">Facebook blue</Highlight> !
