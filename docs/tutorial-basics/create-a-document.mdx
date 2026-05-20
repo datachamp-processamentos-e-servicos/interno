@@ -2,56 +2,287 @@
 sidebar_position: 2
 ---
 
-# Create a Document
+# Criar uma pasta no GitHub (Docusaurus)
 
-Documents are **groups of pages** connected through:
+## Introdução
 
-- a **sidebar**
-- **previous/next navigation**
-- **versioning**
+Este tutorial mostra como criar novas pastas dentro do repositório de documentação usando o GitHub.
 
-## Create your first Doc
+Isso é importante para organizar os artigos por categorias, como por exemplo:
 
-Create a Markdown file at `docs/hello.md`:
+- suporte
+- financeiro
+- tutoriais
+- integrações
 
-```md title="docs/hello.md"
-# Hello
-
-This is my **first Docusaurus document**!
-```
-
-A new document is now available at [http://localhost:3000/docs/hello](http://localhost:3000/docs/hello).
-
-## Configure the Sidebar
-
-Docusaurus automatically **creates a sidebar** from the `docs` folder.
-
-Add metadata to customize the sidebar label and position:
-
-```md title="docs/hello.md" {1-4}
----
-sidebar_label: 'Hi!'
-sidebar_position: 3
 ---
 
-# Hello
+## O que é uma pasta no Docusaurus?
 
-This is my **first Docusaurus document**!
+No Docusaurus, pastas dentro da `/docs` são usadas para:
+
+- organizar documentos
+- criar categorias no menu lateral
+- facilitar a manutenção da documentação
+
+---
+
+## Estrutura básica
+
+Os artigos ficam dentro da pasta:
+
+```bash
+/docs/(nome-da-pasta)
 ```
 
-It is also possible to create your sidebar explicitly in `sidebars.js`:
+Exemplo:
 
-```js title="sidebars.js"
-export default {
-  tutorialSidebar: [
-    'intro',
-    // highlight-next-line
-    'hello',
-    {
-      type: 'category',
-      label: 'Tutorial',
-      items: ['tutorial-basics/create-a-document'],
-    },
-  ],
-};
+```bash
+/docs/suporte/
+/docs/financeiro/
+/docs/tutorials/
 ```
+
+Use nomes:
+
+- sem espaços
+- sem acentos
+- separados por hífen
+
+✅ Correto:
+
+```bash
+/docs/teste-sentus/
+```
+
+❌ Errado:
+
+```bash
+/docs/teste sentus/
+```
+
+
+---
+
+## Como criar uma pasta no GitHub
+
+### 1. Acesse o repositório
+
+Abra o repositório da documentação no GitHub:
+
+```txt
+https://github.com/datachamp-processamentos-e-servicos/docusaurus/tree/main/docs
+```
+
+---
+
+### 2. Entre na pasta `docs`
+
+No GitHub, navegue até:
+
+```bash
+docs/
+```
+
+---
+
+### 3. Criar a pasta (método GitHub)
+
+O GitHub não cria pastas vazias, então você precisa criar um arquivo dentro dela.
+
+Clique em:
+
+```txt
+Add file → Create new file
+```
+
+---
+
+### 4. Criar o nome da pasta
+
+No campo de nome do arquivo, digite o nome da pasta seguido de `/`.
+
+Exemplo:
+
+```bash
+suporte/README.mdx
+```
+
+ou
+
+```bash
+suporte/introducao.mdx
+```
+
+✔ Isso automaticamente cria a pasta `suporte/`.
+
+---
+
+:::warning[Importante]
+
+Como dito anteriormente, as pastas só são criadas caso possuir um arquivo dentro,
+não é possível gerar uma pasta sem adicionar um arquivo.
+
+:::
+
+---
+
+## Exemplo prático
+
+Para criar a pasta `sentus`, faça:
+
+```bash
+sentus/introducao.mdx
+```
+
+Resultado:
+
+```bash
+docs/
+└── sentus/
+    └── introducao.mdx
+```
+
+---
+
+## Estrutura recomendada
+
+Organize as pastas assim:
+
+```bash
+docs/
+├── suporte/
+├── financeiro/
+├── sentus/
+├── tutoriais/
+```
+
+---
+
+---
+
+## Criando o primeiro arquivo da pasta
+
+Ao criar a pasta, você precisa adicionar um arquivo `.mdx`.
+
+Exemplo:
+
+```mdx
+---
+sidebar_position: 1
+---
+
+# Introdução
+
+Bem-vindo à seção de suporte.
+```
+
+---
+
+## Postando a nova pasta
+
+Depois de criar o arquivo:
+
+### Passo 1
+
+Clique em:
+
+```txt
+Commit changes
+```
+
+---
+
+### Passo 2
+
+Preencha o campo:
+
+```txt
+Commit message
+```
+
+Exemplo:
+
+```txt
+Cria pasta suporte com introdução
+```
+
+---
+
+### Passo 3
+
+Certifique-se de selecionar:
+
+```txt
+Commit directly to the main branch
+```
+
+---
+
+### Passo 4
+
+Clique em:
+
+```txt
+Commit changes
+```
+
+---
+
+## Resultado final
+
+Após o commit:
+
+- a pasta será criada no repositório
+- o Docusaurus irá atualizar automaticamente
+- os artigos dentro dela aparecerão no menu lateral
+
+---
+
+## Categorias no Docusaurus (_category_.json)
+
+Para organizar uma pasta como categoria no menu lateral do Docusaurus, é necessário criar um arquivo chamado `_category_.json` dentro da pasta.
+
+Exemplo de estrutura:
+
+```bash
+docs/
+└── tutorial/
+    └── _category_.json
+```
+
+Exemplo de conteúdo:
+
+```json
+{
+  "label": "Tutorial - Basics",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Introdução aos principais conceitos do Docusaurus."
+  }
+}
+```
+
+### O que isso faz?
+
+- `label`: nome da categoria no menu lateral  
+- `position`: ordem de exibição no sidebar  
+- `link`: cria uma página automática da categoria (opcional)
+
+:::info[Dica]
+
+Sem o `_category_.json`, a pasta ainda funciona, mas não terá configuração personalizada no menu lateral.
+
+:::
+
+---
+
+## Resumo
+
+Criar pastas no GitHub para o Docusaurus permite:
+
+- organizar melhor a documentação
+- melhorar a navegação no site
+- separar conteúdos por área
+- facilitar manutenção para o suporte
