@@ -1,1 +1,83 @@
+---
+sidebar_position: 3
+---
 
+# Validar postagem
+
+## Introdução
+
+As publicações automáticas da documentação são feitas através do **GitHub Actions**.  
+Sempre que um arquivo é alterado e enviado para o repositório, um processo automático faz o deploy do site.
+
+---
+
+## Como verificar se funcionou
+
+### 1. Acesse o repositório no GitHub
+
+Entre no repositório da documentação.
+
+
+### 2. Vá na aba “Actions”
+
+No topo do repositório, clique em:
+
+```txt
+Actions
+```
+
+
+### 3. Verifique o status do workflow
+
+Você verá uma lista de execuções automáticas.
+
+O que observar:
+
+- 🟢 **Verde (Success)** → postagem concluída com sucesso
+- 🟡 **Amarelo (In progress)** → ainda está em execução
+- 🔴 **Vermelho (Failed)** → houve erro no deploy
+
+
+### 4. Abra a execução mais recente
+
+Clique no workflow mais recente para ver os detalhes.
+
+
+### 5. Verifique os logs
+
+Dentro da execução, confira as etapas:
+
+- build
+- install dependencies
+- deploy
+
+Se tudo estiver correto, você verá mensagens de sucesso no final.
+
+---
+
+## O que significa quando deu certo?
+
+Se o status estiver como **Success**, significa que:
+
+- O site foi gerado corretamente
+- As alterações foram publicadas
+- O conteúdo já está no ar
+
+
+## O que fazer se falhar?
+
+Se o status estiver como **Failed**:
+
+- Clique na execução
+- Veja o erro no log
+- Verifique se houve erro no MDX ou build
+- Corrija e faça um novo commit
+
+
+## Resumo
+
+Para confirmar a publicação automática:
+
+- Acesse **Actions**
+- Verifique se está **verde (Success)**
+- Abra os logs se precisar de detalhes
