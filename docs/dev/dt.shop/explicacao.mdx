@@ -1,0 +1,233 @@
+---
+sidebar_position: 1
+---
+
+# O que é o Dt.Shop
+O sistema dt.shop checkout é um sistema de vendas simples, que procura facilitar
+as operações diárias dos mais variados segmentos.
+
+## 1. Configurações
+
+### 1.1 Primeira Tela
+
+Campos obrigatórios para conectar ao Sentus:
+
+- **Documento do Emitente** — CNPJ/CPF cadastrado no Sentus (apenas um por instância)
+- **Host do Sistema** — padrão: `http://www.sentus.inf.br/pdv`
+- **Domínio Usuário** — apenas o domínio, ex: `@empresa01`
+
+Opções adicionais no canto superior direito: _Recuperar/Salvar dados_, _Exportar Logs_, _Manual_.
+
+É possível importar configurações via arquivo `.yaml` para evitar reconfiguração do zero.
+
+#### 1.1.1 Configuração Rápida
+
+Disponível para conexão direta via **IP do servidor**, com suporte a leitura de **QR Code** em dispositivos móveis.
+
+### 1.2 Tela de Login
+
+- **Usuário** — apenas o nome, sem domínio (ex: `joao`, não `joao@empresa`)
+- **Senha** — mesma usada no Sentus
+
+### 1.3 Configurações Iniciais
+
+Acessível no primeiro login. Protegida por senha (geralmente restrita ao suporte Datachamp).
+
+#### Seções Disponíveis
+
+| Seção | Descrição |
+|-------|-----------|
+| **1.3.1 Gerais** | Host, documento do emitente e domínio |
+| **1.3.2 Permissões Documento** | NFCe, Pedido, Comanda, Condicional, Cotação, NFe |
+| **1.3.3 Permissões** | Define acesso a Vendas, Relatórios, Configurações |
+| **1.3.4 Desconto** | Regras de desconto (12 opções), máximo percentual, desconto gerencial |
+| **1.3.5 Estoque** | Sincronização, busca online ou ambos |
+| **1.3.6 Portador** | Controle de caixa, portador padrão |
+| **1.3.7 Sincronização** | Intervalo entre sincronizações (mín. 1h, máx. 24h) |
+| **1.3.8 Impressão** | Tipo de dispositivo, tipo de impressão, impressora, tags |
+| **1.3.9 TEF** | Habilitar TEF (Linx, Fiserv/SiTef, Mercado Pago, Payer) |
+| **1.3.10 Comandas/Atendimentos** | Instância (Servidor, Nó Adm, Nó Comercial), permissões e conexões |
+| **1.3.11 Delivery** | Delivery In Box ou Goomer |
+| **1.3.12 Balança** | Integração serial com balanças |
+| **1.3.13 Autoatendimento** | Self-Checkout ou Autoatendimento |
+| **1.3.14 Contingência** | Emissão offline com justificativa |
+| **1.3.15 Máscara Balanças** | Padrão de leitura de código de barras com peso |
+| **1.3.16 Participantes** | Representante padrão, cadastro de contatos |
+
+---
+
+## 2. Sincronização
+
+Importa do ERP: clientes, itens, formas de pagamento, matrizes comerciais, portadores e usuários.
+
+- Primeira sincronização é **obrigatória**
+- Após isso, ocorre automaticamente a cada **24h** (configurável para menos)
+- Indicadores extras: senha prestes a vencer, busca de estoque, sincronização com Goomer, sincronização de nós
+
+---
+
+## 3. Nova Venda
+
+Permite realizar **Pedidos, NFCe, NFe e Condicionais**.
+
+### 3.1 Desktop
+
+**Atalhos principais:**
+
+| Tecla | Ação |
+|-------|------|
+| F2 | Cancelar venda |
+| F5 | Identificar cliente |
+| F6 | Campo código/referência |
+| F7 | Campo descrição (autocomplete com 3 caracteres) |
+| F8 | Campo quantidade |
+| F9 | Campo valor unitário |
+| F10 | Salvar venda (como comanda) |
+| F11 | Buscar vendedor por código |
+| F12 | Finalizar venda |
+
+**Itens favoritos:** marcados com tag `#dt_favorito_X` no Sentus. Aparecem em destaque no topo da tela de vendas.
+
+**Finalização de venda (F12):** selecionar forma(s) de pagamento e enviar ao Sentus. Suporta múltiplas formas, TEF, consulta de cliente, observações e desconto por rateio.
+
+**Salvar venda (F10):** converte a venda em comanda temporária, identificada por `(série)/(número)`.
+
+### 3.2 Mobile
+
+Tela dividida em 3 abas:
+- **Carrinho** — itens adicionados, finalizar, limpar
+- **Produtos** — grupos e busca por nome/referência
+- **Finalização** — formas de pagamento
+
+---
+
+## 4. Listagem de Vendas
+
+Exibe vendas do dia atual e D-1 por padrão. Filtros: documento gerado, situação, emissão.
+
+**Ações por venda:** imprimir, gerar PDF, editar (NFCe não autorizada), consultar status, pagamentos, cancelar (mín. 15 caracteres de justificativa).
+
+---
+
+## 5. Comandas
+
+Vincula um cliente/local a atendimentos sem forçar uma venda imediata.
+
+### 5.1 Listagem
+
+- Grid ou lista de comandas abertas
+- Atualização automática a cada 60 segundos
+- Comandas em **amarelo** = problema de comunicação
+
+### Tipos de Comanda
+
+| Tipo | Comportamento |
+|------|---------------|
+| Normal | Abre comanda e fecha diálogo |
+| Rápida | Abre comanda e direciona ao atendimento rápido |
+| Mista | Usuário escolhe entre abrir ou já adicionar atendimento |
+| Buffet | Abre comanda e atendimento em um único diálogo |
+
+### 5.1.2 Card de Comanda
+
+- Clique no número → visualização avançada
+- Botão esquerdo → fechar/finalizar comanda
+- Botão direito → atendimento rápido
+
+### 5.2 Cancelamento de Comanda Goomer
+
+1. Abrir **Busca Avançada** na listagem de comandas
+2. Filtrar por Situação: **Fechada** + Origem: **Goomer**
+3. Selecionar comanda
+4. Clicar no ícone **"Finalizar comanda no Goomer"** (canto superior direito)
+
+---
+
+## 6. Atendimentos
+
+Vinculam pedidos de clientes às comandas.
+
+### 6.1 Tela de Adição
+
+Dividida em 3 sub-telas:
+- **Geral** — busca de comanda, listagem de itens (modo lista ou grid por grupo), favoritar itens
+- **Carrinho** — itens adicionados + observação do atendimento
+- **Atendimentos** — todos os atendimentos da comanda, com totalizadores
+
+### 6.2 Listagem de Atendimentos
+
+**Ações por atendimento:** editar (remover itens), imprimir, consultar status, gerar PDF, cancelar.
+
+---
+
+## 7. Delivery
+
+Integração com **Delivery In Box** e **Goomer**.
+
+Para o Delivery In Box funcionar, é necessário que:
+- O código do item no delivery corresponda à **referência** no Sentus
+- Exista um item genérico com referência `dtServ` para taxas de entrega/gorjeta
+
+---
+
+## 8. Goomer
+
+Integração configurada em **1.3.11 - Delivery**. Suporta atendimentos no estabelecimento e pedidos delivery.
+
+---
+
+## 9. Controle de Caixa
+
+Visão geral de lançamentos. Exibe: saldo total, último usuário, status (aberto/fechado).
+
+**Ações:** Gerar Relatório, Adicionar Lançamento (entrada ou sangria), Abrir Caixa, Fechar Caixa.
+
+**Filtros avançados:** período, data inicial/final, tipo de lançamento, usuário, ordenação.
+
+---
+
+## 10. Listagem de Itens
+
+Disponível apenas quando Goomer ou autoatendimento está configurado.
+
+**Ações por item:** adicionar quantidade disponível, sincronizar com Goomer, adicionar imagem (para autoatendimento).
+
+---
+
+## 11. Auto Atendimento / Self-Checkout
+
+### 11.1 Self-Checkout
+
+Cliente informa os 4 primeiros dígitos do CPF + número da comanda → confirma itens → escolhe pagamento (Pix, Crédito, Débito) → imprime nota e comprovante.
+
+### 11.2 Autoatendimento
+
+Cliente seleciona itens por grupo → confere carrinho → escolhe pagamento → imprime nota + ficha para retirada.
+
+---
+
+## 12. Relatórios
+
+Tipos disponíveis:
+
+| Relatório | Descrição |
+|-----------|-----------|
+| Formas de Pagamento | Total por forma de pagamento (modelo NFC-e e Pedido por padrão) |
+| Itens Cancelados | Itens cancelados com comanda, atendente e cliente |
+| Comandas | Número, situação e valor total das comandas |
+| Qtd Item por Comanda | Quantidade de um item específico por comanda (filtro por referência) |
+
+Período padrão: D-1 até hoje às 23:59. Resultado pode ser impresso ou exportado em PDF.
+
+---
+
+## 13. Erros Conhecidos
+
+| Código | Descrição | Solução |
+|--------|-----------|---------|
+| **ERRO 0001** | Item de serviço ausente (integração delivery) | Criar item com referência `dtServ` no Sentus |
+| **ERRO 0002** | Falha ao salvar cliente vindo de delivery no Sentus | Corrigir cadastro no Sentus e reenviar a venda |
+
+---
+
+*Documentação original: Manual do Usuário dt.shop Checkout — Datachamp, Dezembro 2025*
