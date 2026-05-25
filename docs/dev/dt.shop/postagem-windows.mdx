@@ -1,0 +1,315 @@
+---
+sidebar_position: 6
+---
+
+# Publicação no Windows
+
+Este guia descreve o processo para gerar, empacotar e disponibilizar uma nova versão de um aplicativo Flutter para Windows.
+
+> OBSERVAÇÃO: Dependendo das bibliotecas utilizadas pelo projeto, recomenda-se realizar todo o processo em uma máquina previamente configurada para build e assinatura do aplicativo.
+
+---
+
+## Pré-requisitos
+
+Antes de iniciar, certifique-se de possuir:
+
+- Projeto Flutter configurado para Windows
+- Ambiente Windows configurado para build
+- Flutter SDK instalado
+- Git configurado
+- Ferramenta de criação de instalador instalada (ex.: Inno Setup)
+- Acesso ao servidor de arquivos/downloads
+- Cliente SFTP/FTP instalado (ex.: WinSCP)
+
+---
+
+## 1. Preparar a branch de publicação
+
+Antes de gerar o build:
+
+1. Garanta que todas as alterações desejadas estejam na branch principal de publicação
+2. Atualize a branch local
+
+Exemplo:
+
+```bash
+git checkout main
+git pull
+```
+
+---
+
+## 2. Verificar a última versão publicada
+
+Verifique qual foi a última versão disponibilizada do aplicativo.
+
+Confirme:
+
+- Número da versão atual
+- Padrão de versionamento utilizado
+
+---
+
+## 3. Atualizar a versão do aplicativo
+
+Utilize a busca global da IDE para localizar todas as ocorrências da versão atual do aplicativo.
+
+No VS Code:
+
+```text
+CTRL + SHIFT + F
+```
+
+Atualize os arquivos necessários conforme a estrutura do projeto.
+
+Exemplos comuns:
+
+- `pubspec.yaml`
+- Arquivos de configuração Windows
+- Scripts de atualização
+- Arquivos de instalador
+- Configurações de build
+
+---
+
+## 4. Commitar as alterações de versão
+
+Após atualizar a numeração:
+
+### Adicionar os arquivos
+
+```bash
+git add .
+```
+
+### Criar o commit
+
+```bash
+git commit -m "DONE - publicação da versão x.x.x"
+```
+
+### Enviar para o repositório
+
+```bash
+git push
+```
+
+---
+
+## 5. Criar uma tag da versão
+
+Após enviar as alterações:
+
+### Criar a tag
+
+```bash
+git tag -a vX.X.X -m "vX.X.X"
+```
+
+Exemplo:
+
+```bash
+git tag -a v1.3.211 -m "v1.3.211"
+```
+
+### Enviar as tags
+
+```bash
+git push --tags
+```
+
+:::warning[Atenção]
+Recomenda-se utilizar o padrão `vX.X.XXX`.
+:::
+
+---
+
+## 6. Gerar o build Windows
+
+Execute o comando:
+
+```bash
+flutter build windows
+```
+
+O Flutter irá gerar os arquivos executáveis da aplicação.
+
+---
+
+## 7. Localizar os arquivos gerados
+
+Após finalizar a build, os arquivos normalmente estarão em:
+
+```text
+build/windows/x64/runner/Release
+```
+
+Copie todos os arquivos dessa pasta para um diretório temporário de empacotamento.
+
+---
+
+## 8. Gerar o instalador
+
+Abra o script do instalador na ferramenta utilizada.
+
+Exemplo:
+
+```text
+arquivo_instalador.iss
+```
+
+Atualize:
+
+- Número da versão
+- Nome do instalador
+- Informações necessárias para distribuição
+
+---
+
+## 9. Compilar o instalador
+
+Na ferramenta de criação de instalador:
+
+- Clique em:
+  ```text
+  Run
+  ```
+
+ou utilize o atalho:
+
+```text
+F9
+```
+
+A ferramenta iniciará o processo de geração do instalador.
+
+---
+
+## 10. Validar a instalação
+
+Durante ou após a compilação:
+
+1. Execute o instalador gerado
+2. Finalize a instalação normalmente
+3. Valide:
+   - Inicialização do aplicativo
+   - Atualizações
+   - Dependências
+   - Integrações
+   - Funcionalidades principais
+
+---
+
+## 11. Organizar os arquivos gerados
+
+Após finalizar:
+
+- Mova o instalador para a pasta oficial de versões
+- Disponibilize uma cópia para validação interna/testes
+
+Exemplo de organização:
+
+```text
+Versoes/
+ ├── Install/
+ ├── Testes/
+ └── Historico/
+```
+
+---
+
+## 12. Validar com a equipe responsável
+
+Antes da publicação final:
+
+- Solicite testes da nova versão
+- Aguarde validação
+- Corrija possíveis problemas encontrados
+
+---
+
+## 13. Publicar nos downloads
+
+Após aprovação:
+
+1. Abra o cliente SFTP/FTP
+2. Conecte ao servidor responsável pelos downloads
+3. Navegue até a pasta pública de instaladores
+4. Envie o novo instalador
+
+Exemplo de diretório:
+
+```text
+/downloads/app
+```
+
+---
+
+## 14. Validar a publicação
+
+Após o upload:
+
+- Acesse a URL pública
+- Verifique se o download funciona corretamente
+- Confirme:
+  - Nome do arquivo
+  - Versão correta
+  - Integridade do instalador
+
+---
+
+## Observações Importantes
+
+- Sempre incremente corretamente a versão
+- Utilize tags Git para facilitar rastreabilidade
+- Teste o instalador antes da publicação
+- Garanta que todos os arquivos necessários estejam incluídos no build
+- Mantenha backups das versões anteriores
+
+---
+
+## Comandos Utilizados
+
+### Atualizar branch
+
+```bash
+git checkout main
+git pull
+```
+
+### Adicionar alterações
+
+```bash
+git add .
+```
+
+### Commitar alterações
+
+```bash
+git commit -m "DONE - publicação da versão x.x.x"
+```
+
+### Enviar alterações
+
+```bash
+git push
+```
+
+### Criar tag
+
+```bash
+git tag -a vX.X.X -m "vX.X.X"
+```
+
+### Enviar tags
+
+```bash
+git push --tags
+```
+
+### Gerar build Windows
+
+```bash
+flutter build windows
+```
