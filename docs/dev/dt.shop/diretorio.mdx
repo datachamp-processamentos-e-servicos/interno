@@ -1,0 +1,103 @@
+---
+sidebar_position: 1
+---
+
+# Estrutura de Diretórios do Projeto
+
+Este documento detalha a arquitetura de pastas e a separação de responsabilidades das camadas do sistema. O projeto está divido em quatro módulos principais: **Common**, **Core**, **View** e **Test**.
+
+---
+
+## 1. Common
+
+O módulo `Common` centraliza os arquivos globais que podem ser injetados ou acessados por qualquer seção do sistema.
+
+* **Conteúdo**: Enums, exceções personalizadas, arquivos de localização (i18n), TO's (Transfer Objects) e utilitários gerais.
+* **Foco dos Utils**: Auxiliar em operações de mais baixo nível e manipulação direta de tipos nativos.
+  * *Exemplos*: Manipulação de logos, formatação de Strings, tratamento de números, gerenciamento de arquivos físicos, etc.
+
+---
+
+## 2. Core
+
+O `Core` representa a **camada de persistência** da aplicação. É onde reside a lógica de negócio ligada aos dados e integrações externas.
+
+### Subdiretórios Principais
+
+* **`/entities`**: Entidades persistidas no banco de dados do sistema.
+* **`/dao`**: Classes de acesso a dados local (`*DAO`).
+* **`/service`**: Classes de comunicação com web services externos (`*Service`).
+* **`/validators`**: Processo centralizado de validação de entidades. Evita repetição de código e fornece logs detalhados para auditoria de falhas e invalidações.
+* **`/utils`**: Classes de infraestrutura para conexões de dados, como `DbProvider` (banco local) e `HttpHandler` (web services).
+
+### Serialização de Dados
+Tanto para o banco de dados local quanto para os Web Services (WS), existem conversores independentes localizados em:
+* `/dao/db_serializer`
+* `/service/json_serializer`
+
+> **Nota de Arquitetura:** O uso de serializadores separados garante que os dados possam ser manipulados localmente de forma independente de como eles chegam do WS, e enviados independentemente de como são persistidos na base local.
+
+### Abstrações Fundamentais
+Para garantir a padronização e evitar a repetição excessiva de código, todas as classes desta camada implementam ou herdam contratos base:
+* `AbstractEntity`
+* `AbstractSerializer`
+* `AbstractDAO` / `AbstractEntityDAO`
+* `AbstractService`
+* `AbstractValidator`
+
+---
+
+## 3. View
+
+A camada `View` abriga todos os componentes associados à renderização do ecossistema Flutter, dividindo-se entre UI, controladores de estado e utilitários de tela.
+
+### Rotas e Injeção de Dependência (`/view/utils`)
+As rotas são compostas por Widgets que herdam de `AbstractRoute`. 
+* Cada rota é responsável por construir o widget de tela correspondente (ex: `LoginRoute` retorna `LoginScreen` dentro do seu método `build()`).
+* **Centralização de Dependências**: A rota funciona como o ponto de injeção de dependências da tela utilizando o `BlocProvider`. Ela amarra as classes necessárias de `Service`, `DAO` e `Validator` diretamente na construção da página, eliminando a necessidade de reinjetar dependências manualmente durante as transições de navegação.
+
+### Estrutura de Telas (`/view/screens`)
+Organizada por contextos de negócio para isolar componentes pontuais:
+* **`[Nome da Seção]`** (ex: *configuracao*, *acesso*)
+  * `core/controller`: Estrutura de Cubits e States da seção específica.
+  * `screen`: Arquivos de tela (UI).
+  * `widgets`: Widgets exclusivos da seção (ex: `VendaCard`, `ItemCard` ou o menu lateral da seção principal) que não devem ser expostos globalmente.
+
+### Utilitários Visuais (`/view/utils`)
+Arquivos focados puramente em regras de visualização e comportamento de interface, livres de regras de negócio:
+
+| Utilitário | Responsabilidade |
+| :--- | :--- |
+| `AppRoute` | Mapeamento das rotas do sistema e listagem de opções do menu lateral. |
+| `MainNavigatorUtils` | Definições de proporção, grid e operação do menu lateral. |
+| `Messenger` | Métodos estáticos para exibição centralizada de feedbacks visuais (avisos, alertas, erros). |
+| `Nav` | Facilita a transição entre rotas. Contém o método `pushMainMenu` focado na navegação pelo contexto do menu lateral. |
+| `ScreenUtils` | Métodos de responsividade (como `isSmallScreen`) e redimensionamento dinâmico focado em ambientes desktop. |
+| `SelectItems` | Centraliza a geração de coleções e opções para alimentar menus dropdown. |
+| `ThemeUtils` | Definição e gerenciamento do tema visual (cores, fontes, estilos) da aplicação. |
+
+### Componentes Globais (`/view/widgets`)
+Concentra os componentes reaproveitáveis por qualquer seção da aplicação (botões, inputs de texto, seletores e utilitários de responsividade).
+* *Regra*: É proibido criar componentes de acoplamento específico de uma tela neste diretório.
+* *Estrutura interna*: Se um componente possuir muitos arquivos dependentes exclusivos, deve ser criada uma subpasta (ex: `/widgets/list/` para agrupar todas as dependências de uma listagem responsiva).
+
+---
+
+## 4. Test
+
+O módulo `Test` armazena a suite de testes de unidade do sistema construída com as ferramentas `flutter_test` e `mockito`.
+
+### Regra de Espelhamento
+A estrutura de arquivos do diretório `/test` deve ser um **espelho idêntico** do diretório `/lib`. Se o arquivo testado está em `/lib/view/login.dart`, o arquivo de teste obrigatoriamente residirá em `/test/view/login_test.dart`.
+
+> **Dica de IDE:** Ao clicar com o botão direito sobre um arquivo original e selecionar a opção *"Go to tests"*, o ambiente gerará o arquivo de teste automaticamente seguindo este padrão.
+
+### Infraestrutura de Mocking (`/test/test-helper`)
+Centraliza os arquivos de suporte para mitigar boilerplate de código:
+* **`test-helper/mocks/mock.dart`**: Arquivo central que contém a anotação `@GenerateMocks` do Mockito.
+
+#### Fluxo de Geração de Mocks:
+1. Adicione a classe pretendida dentro da lista da anotação `@GenerateMocks([\...])`.
+2. Execute o comando do gerador de código no terminal:
+   ```bash
+   flutter pub run build_runner build
