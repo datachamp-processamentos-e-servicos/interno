@@ -1,0 +1,280 @@
+# Arquitetura Cubit — PDV
+
+Visão geral do padrão de gerenciamento de estado adotado no projeto, com exemplos reais do código.
+
+---
+
+## Hierarquia de classes
+
+```
+ActivityState          ← estado de atividade (loading, idle, error…)
+AbstractState          ← estado base de qualquer tela (contém ActivityState)
+  └── XyzState         ← estado concreto da feature (ex: VendaState, ReportsState)
+
+AbstractCubit<T>       ← cubit base com helpers de ActivityState
+  └── XyzCubit         ← cubit concreto da feature (ex: VendaCubit, ReportsCubit)
+```
+
+---
+
+## ActivityState
+
+Representa o "ciclo de vida" de uma operação assíncrona. Toda tela tem exatamente um `ActivityState` ativo por vez.
+
+```dart
+// lib/common/to/activity_state.dart
+
+class ActivityLoading extends ActivityState { ... }  // aguardando resposta
+class ActivityIdle    extends ActivityState { ... }  // pronto / ocioso
+class ActivitySuccess extends ActivityState { ... }  // operação bem-sucedida
+class ActivityError   extends ActivityState { ... }  // erro
+class ActivityWarn    extends ActivityState { ... }  // aviso ao usuário
+class ActivityInfo    extends ActivityState { ... }  // informação neutra
+class ActivitySubmit  extends ActivityState { ... }  // enviando formulário
+class ActivityRefresh extends ActivityState { ... }  // recarregando lista
+```
+
+---
+
+## AbstractState
+
+Todo `State` concreto estende `AbstractState` e deve implementar `copyWith`.
+
+```dart
+// lib/view/abstract/abstract_state.dart
+
+abstract class AbstractState<T extends ActivityState> extends Equatable {
+  final T state; // ActivityState atual
+
+  const AbstractState({required this.state});
+
+  dynamic copyWith({ActivityState? state});
+
+  // Atalhos — use na UI para reagir ao estado:
+  bool isLoading() => state.isLoading();
+  bool isIdle()    => state.isIdle();
+  bool isError()   => state.isError();
+  bool isSuccess() => state.isSuccess();
+  bool isWarning() => state.isWarning();
+}
+```
+
+### Criando um State concreto
+
+Mantenha o `State` no mesmo arquivo do `Cubit` usando `part of`:
+
+```dart
+// reports_state.dart
+part of 'reports_cubit.dart';
+
+class ReportsState extends AbstractState {
+  final List<ReportTO> reports;
+  final DateTime? dataIni;
+  final DateTime? dataFim;
+
+  const ReportsState({
+    super.state = const ActivityLoading(),
+    this.reports = const [],
+    this.dataIni,
+    this.dataFim,
+  });
+
+  @override
+  List<Object?> get props => [state, reports, dataIni, dataFim];
+
+  @override
+  copyWith({
+    ActivityState? state,
+    List<ReportTO>? reports,
+    Optional<DateTime>? dataIni,
+    Optional<DateTime>? dataFim,
+  }) {
+    return ReportsState(
+      state:   state   ?? super.state,
+      reports: reports ?? this.reports,
+      dataIni: copyOptional(dataIni, this.dataIni),
+      dataFim: copyOptional(dataFim, this.dataFim),
+    );
+  }
+}
+```
+
+> **Dica:** declare o state inicial com `super.state = const ActivityLoading()` para que
+> a UI exiba um loader enquanto o cubit inicializa.
+
+---
+
+## AbstractCubit
+
+Fornece helpers que encapsulam `emit(state.copyWith(state: ...))`:
+
+```dart
+// lib/view/abstract/abstract_cubit.dart
+
+abstract class AbstractCubit<T extends AbstractState> extends Cubit<T> {
+  void setStateLoading() => emit(state.copyWith(state: const ActivityLoading()));
+  void setStateIdle()    => emit(state.copyWith(state: const ActivityIdle()));
+  void setStateSuccess([String? message]) => emit(state.copyWith(state: ActivitySuccess(message)));
+  void setStateError([String? message])   => emit(state.copyWith(state: ActivityError(message)));
+  void setStateWarn([String? message])    => emit(state.copyWith(state: ActivityWarn(message)));
+  void setStateInfo([String? message])    => emit(state.copyWith(state: ActivityInfo(message)));
+  void setStateSubmit() => emit(state.copyWith(state: const ActivitySubmit()));
+}
+```
+
+Todos os helpers verificam `isClosed` antes de emitir — não é necessário fazer isso manualmente.
+
+---
+
+## Cubit concreto
+
+```dart
+// reports_cubit.dart
+
+class ReportsCubit extends AbstractCubit<ReportsState> {
+  final _formaPgtoDAO = FormasPagamentoDAO();
+
+  ReportsCubit() : super(const ReportsState()) {
+    // inicialização no construtor
+    initAtendentes();
+  }
+
+  // setter simples → apenas emite o novo valor
+  void setDataIni(DateTime dtIni) {
+    emit(state.copyWith(dataIni: Optional(dtIni)));
+  }
+
+  // operação assíncrona → loading → resultado → idle/error
+  Future<void> find() async {
+    if (!validateReport()) return;
+
+    setStateLoading();
+    try {
+      final list = await _formaPgtoDAO.getReport(...);
+      emit(state.copyWith(reports: list));
+      setStateIdle();
+    } catch (e) {
+      setStateError('Erro ao buscar dados: $e');
+    }
+  }
+}
+```
+
+### Padrão para operações assíncronas
+
+```
+setStateLoading()
+  → await operação
+    → sucesso: emit(state.copyWith(...dados...)) + setStateIdle() ou setStateSuccess()
+    → erro:    setStateError(mensagem)
+```
+
+---
+
+## Optional — anulando campos nullable
+
+`copyWith` com campos `nullable` exige `Optional` para distinguir
+"não informado" de "setar como null":
+
+```dart
+// Sem Optional: não há como passar null intencionalmente
+copyWith({String? nome}) => State(nome: nome ?? this.nome);
+
+// Com Optional: wrapping explícito
+copyWith({Optional<String>? nome}) =>
+    State(nome: copyOptional(nome, this.nome));
+
+// No cubit:
+emit(state.copyWith(cliente: Optional(null)));   // limpa o cliente
+emit(state.copyWith(cliente: Optional(pessoa)));  // atribui um cliente
+emit(state.copyWith());                           // mantém o cliente atual
+```
+
+Use `Optional` apenas em campos que precisam aceitar `null` como valor intencional.
+
+---
+
+## Como usar na UI
+
+### BlocBuilder — rebuild condicional
+
+```dart
+BlocBuilder<ReportsCubit, ReportsState>(
+  buildWhen: (prev, curr) => prev.reports != curr.reports,
+  builder: (context, state) {
+    if (state.isLoading()) return const CircularProgressIndicator();
+    if (state.isError())   return Text(state.state.message ?? 'Erro');
+    return ListView(children: state.reports.map(buildItem).toList());
+  },
+)
+```
+
+### BlocListener — efeitos colaterais (snackbar, navegação)
+
+```dart
+BlocListener<ReportsCubit, ReportsState>(
+  listenWhen: (prev, curr) => curr.isSuccess() && !prev.isSuccess(),
+  listener: (context, state) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(state.state.message ?? 'Concluído')),
+    );
+  },
+  child: ...,
+)
+```
+
+### BlocConsumer — rebuild + efeito no mesmo widget
+
+```dart
+BlocConsumer<VendaCubit, VendaState>(
+  listenWhen: (prev, curr) => curr.isError() && !prev.isError(),
+  listener: (context, state) => showErrorDialog(context, state.state.message),
+  buildWhen: (prev, curr) => prev.list != curr.list,
+  builder: (context, state) => ItemList(itens: state.list),
+)
+```
+
+---
+
+## Injeção via BlocProvider
+
+```dart
+// Provendo o cubit para a sub-árvore:
+BlocProvider(
+  create: (_) => ReportsCubit(),
+  child: const ReportsScreen(),
+)
+
+// Lendo dentro da sub-árvore:
+final cubit = context.read<ReportsCubit>();
+cubit.find();
+
+// Ou acesso ao state sem rebuild:
+final state = context.read<ReportsCubit>().state;
+```
+
+---
+
+## Convenções do projeto
+
+| Convenção | Detalhe |
+|---|---|
+| Arquivo de state | `part of 'xyz_cubit.dart'` no mesmo diretório |
+| Nomeação | `XyzCubit` / `XyzState` na pasta `controller/` |
+| Estado inicial | `super.state = const ActivityLoading()` |
+| Setters simples | Prefixo `set` + nome do campo (`setDataIni`, `setVendedor`) |
+| Checagem antes do emit | `AbstractCubit` já verifica `isClosed` — não duplique |
+| Null intencional | Use `Optional<T>` no `copyWith` |
+| Mensagens de erro | Sempre via `setStateError` / `setStateWarn` — nunca `print` em produção |
+
+
+## Tutoriais Adicionais
+
+[Documentação oficial do bloc]{https://bloclibrary.dev/getting-started/}.
+
+import Youtube from '@site/src/components/Youtube'
+
+<Youtube id="SDk_GldOtK8" />
+
+<Youtube id="rF6eq1oru-Y" />
+
