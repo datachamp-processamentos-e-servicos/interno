@@ -1,0 +1,202 @@
+# Publicação no iOS
+
+Este guia descreve o processo básico para gerar e publicar uma nova versão de um aplicativo Flutter na App Store utilizando o Xcode e o App Store Connect.
+
+---
+
+## Pré-requisitos
+
+Antes de iniciar, certifique-se de possuir:
+
+- Projeto Flutter configurado para iOS
+- Xcode instalado no macOS
+- Conta Apple Developer configurada
+- Certificados e perfis de distribuição válidos
+- Permissão de acesso ao App Store Connect
+
+---
+
+## 1. Verificar a versão atual publicada
+
+Acesse o App Store Connect e localize o aplicativo desejado.
+
+Verifique:
+
+- Última versão publicada
+- Número do build utilizado
+- Informações da versão atual
+
+---
+
+## 2. Acessar o projeto Flutter
+
+Abra o terminal e navegue até a raiz do projeto.
+
+```bash
+cd nome-do-projeto
+```
+
+Depois acesse a pasta iOS:
+
+```bash
+cd ios
+```
+
+---
+
+## 3. Gerar a build iOS
+
+Antes de abrir o projeto no Xcode, gere a build do aplicativo:
+
+```bash
+flutter build ios
+```
+
+Esse processo prepara os arquivos necessários para o arquivamento e distribuição.
+
+---
+
+## 4. Abrir o projeto no Xcode
+
+Abra o projeto iOS no Xcode utilizando o comando:
+
+```bash
+open -a Xcode
+```
+
+Ou abra manualmente o arquivo `.xcworkspace` no Xcode localizado na pasta `ios`.
+
+---
+
+## 5. Configurar versão e build
+
+No Xcode:
+
+1. Selecione o dispositivo:
+   - `Any iOS Device`
+
+2. No menu lateral:
+   - `Runner`
+   - `Targets`
+   - `Runner`
+
+3. Atualize:
+   - Campo **Version**
+   - Campo **Build**
+
+:::Warning(Lembrete)
+O número do build deve sempre ser incrementado em relação ao anterior.
+:::
+
+---
+
+## 6. Gerar o pacote (Archive)
+
+No menu superior do Xcode:
+
+```text
+Product > Archive
+```
+
+O Xcode iniciará o processo de geração do pacote de distribuição.
+
+---
+
+## 7. Distribuir o aplicativo
+
+Após finalizar o archive:
+
+1. A janela do Organizer será aberta automaticamente
+
+   Caso não abra:
+
+   ```text
+   Window > Organizer
+   ```
+
+2. Selecione o archive recém-gerado
+
+3. Clique em:
+   - `Distribute App`
+
+4. Escolha:
+   - `App Store Connect`
+
+5. Utilize o perfil/certificado de distribuição adequado
+
+6. Finalize o envio
+
+---
+
+## 8. Criar uma nova versão no App Store Connect
+
+Após o upload concluir:
+
+1. Acesse o App Store Connect
+2. Abra o aplicativo desejado
+3. Clique no botão `+` para criar uma nova versão
+4. Informe o número da nova versão
+
+---
+
+## 9. Preencher informações da versão
+
+Na tela da nova versão:
+
+- Adicione o texto de atualização em:
+  - **O que há de novo nesta versão**
+
+- Revise:
+  - Capturas de tela
+  - Informações do aplicativo
+  - Metadados
+  - Classificação indicativa
+
+---
+
+## 10. Selecionar a compilação enviada
+
+Na seção **Compilação**:
+
+1. Clique no botão `+`
+2. Escolha a build enviada recentemente
+
+
+:::Warning(Atenção)
+Caso a build ainda não apareça, aguarde alguns minutos para o processamento da Apple.
+
+Se necessário, realize o upload novamente pelo Xcode.
+:::
+
+---
+
+## 11. Enviar para revisão
+
+Após revisar todas as informações:
+
+1. Clique em `Salvar`
+2. Clique em `Enviar para revisão`
+
+A Apple iniciará o processo de validação do aplicativo.
+
+---
+
+## Observações Importantes
+
+- Sempre incremente o número do build
+- Utilize certificados válidos
+- Certifique-se de que a versão enviada corresponde à versão configurada no projeto
+- O processamento da build no App Store Connect pode levar alguns minutos
+- Mantenha o Flutter e o Xcode atualizados
+
+---
+
+## Comandos Utilizados
+
+```bash
+flutter build ios
+```
+
+```bash
+open -a Xcode
+```
