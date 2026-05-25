@@ -1,0 +1,265 @@
+---
+sidebar_position: 5
+---
+
+
+# Publicação no Android
+
+Este guia descreve o processo para gerar e publicar uma nova versão de um aplicativo Flutter Android utilizando a Google Play Console em uma trilha de teste interno, fechado ou aberto.
+
+---
+
+## Pré-requisitos
+
+Antes de iniciar, certifique-se de possuir:
+
+- Projeto Flutter configurado para Android
+- Android SDK instalado
+- Conta Google Play Console configurada
+- Permissão de acesso ao aplicativo na Play Console
+- Chave de assinatura configurada corretamente
+
+---
+
+## 1. Verificar a última versão publicada
+
+Acesse a Google Play Console e localize o aplicativo desejado.
+
+Verifique:
+
+- Última versão publicada
+- Código da versão (`versionCode`)
+- Nome da versão (`versionName`)
+
+---
+
+## 2. Acessar o projeto Flutter
+
+Abra o terminal e navegue até a raiz do projeto.
+
+```bash
+cd nome-do-projeto
+```
+
+---
+
+## 3. Atualizar a versão do aplicativo
+
+Utilize a busca global da IDE para localizar todas as ocorrências da versão atual do aplicativo e atualize para a nova versão.
+
+No VS Code, utilize:
+
+```text
+CTRL + SHIFT + F
+```
+
+Atualize os locais necessários com o novo número da versão.
+
+---
+
+## 4. Incrementar o versionCode
+
+Abra o arquivo:
+
+```text
+android/app/build.gradle
+```
+
+Localize o campo:
+
+```gradle
+flutterVersionCode
+```
+
+Incremente o valor em `+1`.
+
+Exemplo:
+
+```gradle
+flutterVersionCode = 12
+```
+
+para:
+
+```gradle
+flutterVersionCode = 13
+```
+
+:::warning[Lembrete]
+O `versionCode` deve sempre ser maior que o enviado anteriormente para a Google Play.
+:::
+---
+
+## 5. Gerar o pacote Android (.aab)
+
+Execute o comando abaixo no terminal:
+
+```bash
+flutter build appbundle
+```
+
+Esse processo irá gerar o pacote `.aab` utilizado para publicação na Google Play.
+
+---
+
+## 6. Localizar o arquivo gerado
+
+Após finalizar a build, o arquivo será gerado em um caminho semelhante a:
+
+```text
+build/app/outputs/bundle/release/
+```
+
+O arquivo terá extensão:
+
+```text
+.aab
+```
+
+---
+
+## 7. Acessar a Google Play Console
+
+Abra o navegador e acesse:
+
+```text
+https://play.google.com/console/
+```
+
+Selecione o aplicativo desejado.
+
+---
+
+## 8. Acessar a trilha de testes
+
+No menu lateral da Google Play Console:
+
+```text
+Testar e lançar > Teste
+```
+
+Escolha a trilha desejada:
+
+- Teste interno
+- Teste fechado
+- Teste aberto
+
+---
+
+## 9. Criar uma nova versão
+
+Na trilha selecionada:
+
+1. Clique em:
+   ```text
+   Criar nova versão
+   ```
+
+2. Arraste o arquivo `.aab` para a área de upload
+
+3. Aguarde o processamento do envio
+
+---
+
+## 10. Configurar os detalhes da versão
+
+Após o upload:
+
+### Nome da versão
+
+Revise o nome da versão exibido.
+
+Normalmente é recomendado manter apenas o número da versão.
+
+### Notas da versão
+
+Adicione um texto contendo:
+
+- Introdução curta
+- Principais alterações
+- Correções importantes
+- Pequena conclusão
+
+Exemplo:
+
+```text
+- Melhorias de desempenho
+- Correções de bugs
+- Ajustes visuais
+- Novas funcionalidades
+```
+
+---
+
+## 11. Revisar erros e alertas
+
+Clique em:
+
+```text
+Próximo
+```
+
+Revise possíveis:
+
+- Erros
+- Alertas
+- Problemas de compatibilidade
+- Avisos de política
+
+Corrija os problemas caso necessário.
+
+---
+
+## 12. Enviar para revisão
+
+Após validar todas as informações:
+
+1. Clique em:
+   ```text
+   Enviar para revisão
+   ```
+
+2. Aguarde o processamento da Google Play
+
+A análise pode levar algumas horas.
+
+---
+
+## 13. Promover para produção
+
+Caso a versão seja aprovada:
+
+1. Retorne para a tela da trilha de testes
+2. Localize a versão publicada
+3. Utilize a opção:
+   ```text
+   Promover para produção
+   ```
+
+O processo é semelhante ao da publicação de testes.
+
+---
+
+## Observações Importantes
+
+- Sempre incremente o `versionCode`
+- Certifique-se de que a versão está correta antes do envio
+- Utilize a build `.aab` para publicação
+- Revise os alertas da Google Play antes de enviar
+- O tempo de revisão pode variar conforme a aplicação
+
+---
+
+## Comandos Utilizados
+
+### Gerar App Bundle
+
+```bash
+flutter build appbundle
+```
+
+### Navegar até o projeto
+
+```bash
+cd nome-do-projeto
+```
