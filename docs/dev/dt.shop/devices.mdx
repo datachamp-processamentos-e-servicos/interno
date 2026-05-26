@@ -1,0 +1,357 @@
+---
+sidebar_position: 4
+---
+
+
+# Implementação de devices
+
+Este documento descreve o processo de integração de dispositivos dispositivos em aplicações Android/Flutter, incluindo configuração de impressão, permissões, dependências e observações específicas de fabricantes.
+
+---
+
+# Visão Geral
+
+A integração de dispositivos normalmente envolve:
+
+- Instalação de drivers específicos
+- Inclusão de bibliotecas proprietárias
+- Configuração de permissões Android
+- Integração com APIs de impressão
+- Configuração de comunicação AIDL/SDK
+- Ajustes específicos por fabricante
+
+Cada fabricante possui sua própria SDK, documentação e requisitos.
+
+---
+
+# Estrutura Recomendada
+
+Arquivos geralmente utilizados durante a integração:
+
+```text
+android/app/libs/
+android/app/build.gradle
+android/app/src/main/AndroidManifest.xml
+```
+
+---
+
+# Ingenico
+
+## Modelos Compatíveis
+
+Exemplo de linha compatível:
+
+- Série DX
+- Série AXIUM
+
+---
+
+## Instalação de Driver
+
+Em alguns dispositivos é necessário instalar drivers específicos para comunicação com o computador.
+
+Exemplo:
+
+```text
+Landi Win Driver
+```
+
+---
+
+## Biblioteca de Impressão
+
+Adicione o arquivo `.jar` fornecido pelo fabricante dentro da pasta:
+
+```text
+android/app/libs/
+```
+
+Exemplo:
+
+```text
+usdk_api_aidl.jar
+```
+
+---
+
+## Dependências Gradle
+
+Adicione as dependências necessárias no arquivo:
+
+```text
+android/app/build.gradle
+```
+
+Exemplo:
+
+```gradle
+implementation files('libs/usdk_api_aidl.jar')
+
+implementation 'com.google.zxing:core:3.4.1'
+implementation 'com.google.zxing:javase:3.4.1'
+```
+
+---
+
+## Permissões Android
+
+Adicione as permissões necessárias no:
+
+```text
+AndroidManifest.xml
+```
+
+Exemplo:
+
+```xml
+<uses-permission android:name="android.permission.BIND_PRINT_SERVICE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+```
+
+Dependendo do SDK utilizado, permissões adicionais podem ser necessárias.
+
+---
+
+## Documentação
+
+A documentação oficial normalmente é disponibilizada pelo portal do fabricante.
+
+Também é recomendado manter:
+
+- Exemplos locais
+- SDKs salvas internamente
+- Projetos de referência
+- Documentação offline
+
+---
+
+# Sunmi
+
+## Modelos Compatíveis
+
+Exemplo de linha compatível:
+
+- Série P
+
+---
+
+## Dependências Gradle
+
+Adicione no:
+
+```text
+android/app/build.gradle
+```
+
+Exemplo:
+
+```gradle
+implementation 'com.sunmi:printerx:1.0.17'
+```
+
+---
+
+## Permissões Android
+
+No arquivo:
+
+```text
+AndroidManifest.xml
+```
+
+Adicione:
+
+```xml
+<uses-permission android:name="sunmi.permission.PRINTER"/>
+```
+
+---
+
+## Compatibilidade Android 11+
+
+Para dispositivos Android 11 ou superior pode ser necessário adicionar:
+
+```xml
+<queries>
+    <package android:name="woyou.aidlservice.jiuiv5"/>
+</queries>
+```
+
+Essa configuração permite localizar serviços internos utilizados pela impressora.
+
+---
+
+## Documentação
+
+A documentação da Sunmi normalmente possui:
+
+- Exemplos prontos
+- SDKs
+- APIs de impressão
+- Guias de integração
+
+Recomenda-se manter uma cópia local dos principais materiais utilizados.
+
+---
+
+# Elgin
+
+## Modelos Compatíveis
+
+Exemplo de linha compatível:
+
+- Mini PDV
+- SmartPOS Android
+
+---
+
+## Biblioteca Utilizada
+
+A integração pode ser realizada utilizando o package oficial disponibilizado para Flutter.
+
+Exemplo:
+
+```text
+elgin
+```
+
+---
+
+## Configuração de Debug
+
+Em alguns modelos, para permitir comunicação em modo debug:
+
+1. Ligue o dispositivo sem cabos conectados
+2. Após inicializar:
+   - conecte primeiro no dispositivo
+   - depois conecte ao computador
+
+Esse processo pode evitar falhas de reconhecimento USB.
+
+---
+
+# Boas Práticas
+
+## Organização de SDKs
+
+Mantenha uma estrutura organizada para:
+
+```text
+Documentacao/
+ ├── Ingenico/
+ ├── Sunmi/
+ ├── Elgin/
+ └── Outros/
+```
+
+---
+
+## Backup de Arquivos
+
+Armazene localmente:
+
+- SDKs
+- APKs de exemplo
+- Drivers
+- Bibliotecas `.jar`
+- Projetos de referência
+
+---
+
+## Compatibilidade
+
+Antes da integração, valide:
+
+- Versão Android
+- Arquitetura do dispositivo
+- Compatibilidade da SDK
+- Dependências necessárias
+- Permissões exigidas
+
+---
+
+## Testes Recomendados
+
+Valide:
+
+- Impressão
+- Comunicação com periféricos
+- Performance
+- Inicialização do serviço
+- Reconexão
+- Compatibilidade offline
+
+---
+
+# Estrutura de Arquivos Comuns
+
+## Bibliotecas
+
+```text
+android/app/libs/
+```
+
+## Manifesto Android
+
+```text
+android/app/src/main/AndroidManifest.xml
+```
+
+## Configuração Gradle
+
+```text
+android/app/build.gradle
+```
+
+---
+
+# Dependências Comuns
+
+## ZXing
+
+Utilizada frequentemente para:
+
+- QR Code
+- Código de barras
+
+Exemplo:
+
+```gradle
+implementation 'com.google.zxing:core:3.4.1'
+```
+
+---
+
+# Observações Importantes
+
+- Cada fabricante possui APIs diferentes
+- Algumas SDKs dependem de AIDL
+- Nem todos os dispositivos possuem as mesmas permissões
+- Android 11+ pode exigir configurações extras
+- Sempre valide em hardware físico
+- Prefira manter documentação local disponível
+
+---
+
+# Links Úteis
+
+## Flutter
+
+```text
+https://flutter.dev
+```
+
+## Pub.dev
+
+```text
+https://pub.dev
+```
+
+## Android Developers
+
+```text
+https://developer.android.com
+```
