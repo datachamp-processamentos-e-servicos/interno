@@ -1,0 +1,69 @@
+---
+sidebar_position: 1
+title: Sicredi
+description: Configuração de integração de boletos via API Sicredi
+---
+
+# Sicredi
+
+Documentação de configuração da integração de boletos com a API do Sicredi.
+
+## Visão geral
+
+A integração do Sicredi utiliza autenticação OAuth2 no fluxo `password`.
+
+A API é utilizada para:
+
+- Emissão de boletos
+- Consulta de boletos
+- Baixa/cancelamento
+- Atualização de cobrança
+
+---
+
+## Pré-requisitos
+
+Antes de iniciar a configuração, é necessário:
+
+- Possuir acesso ao Internet Banking do Sicredi
+- Possuir um APP cadastrado para API de cobrança
+- Ter usuário com permissão para cobrança bancária
+
+---
+
+## Credenciais necessárias
+
+| Campo | Onde obter |
+|---|---|
+| `client_id` | Tela de lista de APPs |
+| `client_secret` | Tela de lista de APPs |
+| `developer_app_key` | Detalhes do APP → campo `Code` |
+| `username` | Beneficiário + Cooperativa |
+| `password` | Internet Banking → Cobrança → Código de Acesso → Gerar |
+
+---
+
+## Nome do APP
+
+O nome do APP normalmente segue o padrão:
+
+```text
+API Cobrança (Coop) (Código Beneficiário) Produção
+```
+## Configuração do Portador
+
+Exemplo de configuração:
+
+```
+api.ambiente=PRODUCAO
+
+api.url.auth=https://api-parceiro.sicredi.com.br/auth/openapi/token
+api.url.cob=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1
+
+api.developer_app_key=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+api.client_id=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+api.client_secret=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+api.user_name=XXXXXXXXX
+api.password=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
