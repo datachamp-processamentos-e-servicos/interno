@@ -1,0 +1,45 @@
+---
+sidebar_position: 6
+---
+
+# Integração com Payer 
+
+Este documento descreve o processo de integração e utilização do Tef Payer no dt.Shop.
+
+---
+
+## Visão Geral
+
+A Payer é uma startup brasileira de tecnologia financeira (fintech) focada em simplificar meios de pagamento e serviços financeiros para o setor de varejo.
+Atuando de forma semelhante a um "marketplace ou shopping de pagamentos", a ferramenta se conecta diretamente ao sistema de gestão (PDV) de lojas, 
+farmácias, restaurantes e comércios em geral. Ela funciona como uma evolução dos sistemas tradicionais de TEF (Transferência Eletrônica de Fundos).
+
+---
+
+## Utilização no pdv
+
+Para poder utilizar a itegração com o payer no dt.Shop, é necessário realizar uma configuração de configuração com o mesmo. Para isso, deve-se:
+
+1. Acessar a tela de configurações e expandir o accordion com o titulo "Configurações Tef".
+2. No dropdown chamado "Habilitar TEF", alterar a opção para "Integrado - Payer".
+3. Preencher o restante dos campos que apareceram("Usuario" e "Senha").
+
+Para testar a impressão realizada pela Payer, deve-se alterar o tipo de dispositivo para "Smart Pos - Payer", assim a impressão toda é realizada por meio
+do Payer.
+
+:::info[Atenção]
+Caso esteja sendo feita a configuração para utilizar em homologaçõa, deve-se utilizar os dados que estão localizados no
+'G://_Dev/Informações Artigos/Dados Payer.rtf'. Lembrar também que deve ser alterado o número do ip para a máquina que tiver o Payer configurado.
+:::
+
+---
+
+## Utilização da SmartPOS
+
+As smartPOS Gertec que são utilizadas pela Payer **não possuem modo Desenvolvedor**, ou seja, **não é possível fazer a depuração por meio de um USB**. 
+
+Além disso,não permite que sejam abertos arquivos externos nem que utilize o bluetooth. Por isso, quando o pdv estiver sendo utilizado em um dispositivo android e tiver a confuguração
+de utilização do Payer, é mostrado um botão com icone "Dev" na tela de venda em formato extendido. Ao clicar neste botão, é mostrado um diálogo mostrando todo o log de erros em tela.
+Essa foi a única solução encontrada para poder visualizar o fluxo que estava acontecendo. 
+
+Ademais, há alguns logs adicionais no processo de pagamento e de impressão, para ativa-los é necessário ativar o modo de debug.
