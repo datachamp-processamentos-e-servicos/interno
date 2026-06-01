@@ -1,0 +1,72 @@
+---
+sidebar_position: 5
+---
+
+
+# Integração do Delivery 
+
+Este documento descreve o processo de integração e utilização do Delivery In Box no dt.Shop.
+---
+
+## Visão Geral
+
+O Delivery In Box é uma plataforma de entregas focado em cidades de pequeno e médio porte. Ele permite que os usuários façam pedidos 
+online de diversos estabelecimentos locais — como restaurantes, supermercados, farmácias e lojas de conveniência — diretamente pelo celular ou computador.
+Atualmente este sistema de delivery é apenas utilizado pelos clientes da Parceria em Santiago.
+---
+
+## Utilização no pdv
+Para poder utilizar a integração com o delivery no dt.Shop, é necessário realizar uma configuração de comunicação. Para isso, deve-se:
+
+1. Acessar a tela de configurações, e expandir o accordion com o titulo "Delivery".
+2. Selecionar a empresa "Delivery In Box".
+3. Preencher o restante dos campos que apareceram ("Client Id", "Client Secret" e "Merchant Id").
+4. Reiniciar o aplicativo.
+
+Ao abrir novamente o pdv, no menu lateral deve-se encontrar um botão com icone em formato de moto chamado "Delivery". Nele, é possivel realizar a busca de pedidos
+realizados no delivery por meio do dt.Shop para poder realizar a fatura do mesmo. Ao realizar a busca, os pedidos são chegam ao dt.Shop e são convertidos para um 
+objeto interno facilitando a manipulação do mesmo, este pedido é mostrado em tela com um botão de faturamento.
+
+Nesta tela é possível realizar a busca por meio de alguns parâmetros adicionais como:
+* Data Inicial.
+* Data Final.
+* Situação.
+* Modalidade de pagamento.
+* Nome do cliente.
+---
+
+## Faturando um pedido
+
+Na tela de listagem de pedidos do delivery ("Delivery" no menu lateral), se clicado no botão de faturar o pedido, é realizado o seguinte fluxo:
+
+* É realizada uma busca no webservice do Delivery para buscar o json completo do pedido (o que é utilizado para mostrar os dados em tela é reduzido, utilizado apenas para mostrar ao
+ usuário os dados mais importantes).
+* Caso o retorno seja nulo, é mostrado um erro ao usuário.
+* Se o retorno não for nulo, envia o retorno e o usuário para a tela de nova venda.
+* Na tela de nova venda, o json é tratado na função load onde é realizada a transformação do json para um objeto de venda.
+---
+
+# Testes em Desenvolvimento
+
+Para realizar os testes em hambiente de homologação, é necessário realizar toda a configuração especificada acima utilizando os dados de teste que estão disponíveis
+no G://_Dev/Informações Artigos/Dados Delivery.rtf
+
+Neste arquivo também está disponível os links para a realização de pedidos (Link da empresa) e o dashboard onde é possivel validar os pedidos realizados.
+---
+
+## Importar Json
+
+Para poder importar um json de **venda** basta seguir o passo a passo a seguir:
+
+* Primeiro passo é descomentar as funções de teste que estão nas classes do delivery. As funções são as seguintes:
+  * No deliveryTO, deve-se comentar a "situacao: InboxSitEnum.getEnumByIndex(json['status']?['code'])" e descomentar a "situacao: InboxSitEnum.getEnumByIndex(json['status']?['code'] ?? InboxSitEnum.placed.index)".
+  * Na delivery_list_screen, deve-se comentar as linhas do botão _refreshButton e descomentar a linha "await cubit.searchStatic()".
+  * Ainda na delivery_list_screen, deve-se descomentar a função _fatPedTeste e, dentro da "createRow" na última cedula, deve-se comentar a função "_fatPedido" e descomentar a "_fatPedidoTeste".
+  * No app_routes, deve-se comentar as linhas que condicionam ao delivery aparecer no menu lateral.
+* Com esses códigos descomentados, deve-se entrar na "delivery_list_cubit" e alterar os jsons nas funções: searchStatic e fatPedTeste.
+* Para realizar os testes agora, é só entrar na tela do deliverty -> clicar em buscar pedidos.
+* Caso tudo tenha sido realizado corretamente, o json informado deverá aparecer na tela no formato de um pedido.
+* Pode-se realizar todos os tratamentos conforme necessário neste pedido.
+
+
+
