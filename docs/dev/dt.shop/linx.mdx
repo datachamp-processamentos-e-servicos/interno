@@ -21,5 +21,44 @@ integrando suas soluções ao portfólio da maior companhia de tecnologia do pa�
 Para poder utilizar a integração com o Linx no dt.Shop, é necessário realizar realizar uma configuração de configuração com o mesmo. Pera isso, deve-se:
 
 1. Acessar a tela de configurações e expandir o accordion com o título "Configurações Tef".
-2. No dropdown chamado "Habilitar TEF", alterar a opção para "Integrado - Linx".
-3. 
+2. No dropdown chamado "Habilitar TEF", alterar a opção para "Integrado - Linx - SEM PIX", ou "Integrado - Linx - COM PIX".
+3. Na Linx não há necessidade de realizar nenhuma configuração adicional no pdv.
+
+Como utilizamos o método de comunicação por meio de troca de arquivos, é necessário realizar a instalação e a configuração de um aplicativo de terceiros fornecido pela própria Linx.
+Deve-se seguir o seguinte passo a passo para realizar a instalação:
+
+1. Executar os arquivos na ordem: DTEF8RuntimeSetup822xxxx.exe e ClientLinxTEFSetup_822200603-07011507_x32.exe. Ambos os arquivos estão localizados no caminho 'G://TEF Linx caminho feliz/Instaladores'.
+2. Após concluir a instalação a aplicação irá criar os diretórios: C://DTEF8RunTime e C://ClientLinxTef.
+3. A configuração deve ser toda realizada no aplicativo **dposconfig.exe** no caminho:'C://ClientLinxTef/Bin/QtApplication'.
+4. O diretório de troca de arquivos é C://TEF_DIAL/RESP e C://TEF_DIAL/REQ. Esse caminho é configurável através do arquivo 'C://Windows/gpdirecao.ini'.
+5. Para efetuar a configuração, o dposconfig.exe como administrador e informar a senha DPOS + horário da máquina, exemplo DPOS1015.
+
+Após a instalação completa, deve-se realizar a configuração:
+
+1. Abrir o arquivo **dposconfig.exe** no caminho:'C://ClientLinxTef/Bin/QtApplication'.
+2. Informar a senha para liberar a edição.
+3. No menu que aparecer, clicar na opção "Equipamento", ao ser redirecionado para a tela de dados, basta preenche-los com os dados localizados no 'G://TEF Linx caminho feliz/dados importantes.txt'. *Obs:* O valor do código pdv pode ser qualquer valor númerico.
+4. Para poder utilizar o pinpad com o TEF Linx, seguir os seguintes passos:
+    1. Instalar os drivers do pinpad que será utilizado.
+    2. No aplicativo do dposconfig.exe, entrar na opção do "Pinpad".
+    3. Na tela que será aberta, marcar a opção "Pin Pad Ativo" e informar qual serial port ele está conectado. Pode-se utilizar a opção "Procurar Pin Pad" para a aplicação identificar a porta que o pin pad está configurado.
+5. Se não for utilizar o pin pad neste momento, entrar na opção pinpad do menu e desmarcar as opções "Pin Pad Ativo" e "Procurar pinpad automaticamente".
+6. Acessar a opção "D-TEF" no menu e informar o endereço 'tef-stlb01.linxsaas.com.br' e a porta alterar para '8779' e marcar a opção "SSL".
+
+Depos de realizar toda a configuração, deve-se validar se o aplicativo GPDirecao.exe está ativo e rodando na máquina. Um ícone azul deve ter sido criado próximo ao relógio do Windows.
+
+Após todas estas validações, o último passo é fazer o download dos certificados da Linx:
+
+1. Abrir como administrador o executável que fica no caminho 'C://ClientLinxTef/Bin/ClientCertificado.exe'
+2. Alterar a "URL" para o diretório a seguir: 'https://tef.linxsaas.com.br/certificados/Gerenciador_Certificado.cgi'.
+3. O "Diretório de Saída" deve ser alterado para 'C://ClientLinxTef/Bin'.
+
+## Realizando uma transação
+
+Para realizar uma transação com pagamento pela Linx, deve-se realizar uma transaçõa normalmente pelo dt.Shop e, no dialogo de finalização, escolher alguma forma de pagamento que ative o TEF e finalizar. Ao clicar em finalizar, o pdv será levado para segndo plano enquanto o aplicativo da Linx será levado a primeiro plano para que a transação seja realizada.
+Neste aplicativo que abre da Linx, alguns dados necessitam ser informados como número do cartão, vencimento, etc. Na pasta 'G://TEF Linx caminho feliz/dados importantes.txt' temos alguns dados de teste que podem ser utilizados.
+Ao finalizar a transação, o sistema retora o pdv para primeiro plano e fecha o aplicativo Linx, os comprovantes devem ser impressos logo após imprimir o cupom.
+
+## Informações adicionais:
+
+Para mais informações de implementação, deve-se acessar o guia técnico localizado no 'G://TEF Linx caminho feliz/TEF Guia Tecnico Gerenciador Padrao 2.5_032010.doc'
