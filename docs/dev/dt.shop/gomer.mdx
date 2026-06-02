@@ -14,3 +14,58 @@ A Goomer é uma plataforma brasileira omnichannel de cardápio digital e automa�
 alimentação. O objetivo principal do serviço é otimizar o atendimento, reduzir custos operacionais e eliminar a necessidade de digitação manual de pedidos.
 
 ---
+
+## Utilização no pdv
+Para poder utilizar a integração com o Goomer no dt.Shop, é necessário realizar uma configuração de comunicação. Para isso, deve-se:
+
+1. Acessar a tela de configurações, e expandir o accordion com o título "Delivery".
+2. Selecionar a empressa "Goomer".
+3. Preencher o restante dos campos que apareceram ("Goomer Url" e "Goomer Token").
+4. Certificar-se de que o tempo de atualização configurado é de no mínimo 60 segundos - valores abaixo disso são bloqueados pelo validador de configurações.
+5. Reiniciar o aplicativo.
+
+Vale ressaltar que: A integração com o Goomer ***não utiliza uma tela de dicada a listagem de pedidos do Goomer***. Os pedidos chegam automaticamente através do ciclo de sincronização da tela de comandas.
+
+---
+
+## Recebimento automático de pedidos
+
+Ao abrir a tela de Comandas, o dt.Shop inicia um timer que executa a sincronização periodicamente a cada ciclo de atualização configurado. A cada ciclo o sistema realiza as seguintes operações:
+
+1. Verifica se a integração Goomer está ativa.
+2. Chama 'findPedidos' que realiza um busca apenas por pedidos com o status **confirmado**.
+3. Para cada pedido recebido:
+  - Determina o modo de operação: se o JSON recebido contém o campo 'card', é modo comanda, caso cotrário, é modo mesa.
+  - Cria ou atualiza um **Comanda** interna com o local definido como 'MESA (número da mesa).
+  - Armazena o identificador do Goomer em 'camposAdic' ("GoomerId" para modo comanda, "GoomerMesaId para modo mesa).
+  - Insere os itens do pedido como 'AtendimentoItem', com verificação de duplicidade do item na comanda (Se o item vindo do Goomer já foi adicionado não adiciona novamente).
+  - Se algum item possui 'controle de quantidade diária', a quantidade do item no pedido é decrementada da quantidade total.
+  - Realiza a impressão dos itens do pedidos na impressora de comandas configurada.
+4. Notifica o Goomer que o pedido foi recebido.
+5. Busca eventos pendentes (chamda de garçom, solicitação de copos, talheres etc).
+
+---
+
+## Operações durante o atendimento
+
+Com a integração ativda, algumas ações na tela de comandas refletem diretamente no Goomer:
+
+1. Adição de itens: Ao lançar um novo atendimento em uma comanda Goomer, os itens também são enviados ao Goomer.
+2. Cancelamento de itens: Ao cancelar um item em uma comanda Goomer, o cancelamento também é refletido ao Goomer.
+3. Transferência de itens: Ao transferir itens entre comandas, a transferência é repplicada ao Goomer.
+4. Fechamento de comanda: Ao fechar uma comanda Goomer pelo dt.Shop, o sistema também executa o fechamento da comanda no Goomer.
+
+---
+
+## Sincronização de itens:
+
+Durante a sincronização do dt.Shop, é possível sincronizar os itens cadastrados com o cardápio digital do Goomer. Para isso:
+
+- Na tela de sincronização, marcar o checkbox 'Sinc. Itens com Goomer'.
+- Apenas os itens que possuem a tag '#dt_goomer' são enviados ao Goomer.
+- Os itens são sincronizados em lote, enviando código de referência, nome e preço.
+
+
+
+
+
