@@ -1,0 +1,86 @@
+---
+sidebar_position: 7
+---
+
+# Integração com Balança
+
+Este documento descreve o processo de integração e utilização da balança no dt.Shop.
+
+---
+
+## Visão Geral
+
+O dt.Shop possuí integração com balanças por meio da entrada serial do computador, isso permite com que o dt.shop possa pegar o peso de determinados itens. O pdv
+comunica-se com a balança por meio de uma dll feita em c, o nome o arquivo no projeto do pdv é 'testeDll.dll'. 
+
+---
+
+## Configurando Itens
+
+Antes de começar a utilizar a balança no pdv, deve-se realizar a configuração dos itens no Sentus:
+1. Acesar a aba itens no Sentus.
+2. Ao encontrar o item desejado, clicar no botão de "Ações" -> "Parâmetros".
+3. Um dos parâmetros configuráveis é o de "BALANCA - Item Utiliza Balança", basta seleciona-lo do dropdown da esquerda e colocar o valor de sim no outro campo que abrirá.
+
+## Utilização no pdv
+
+Para utilizar a balança no pdv, é necessário configura-la. Para isso, basta:
+1. Na tela de configurações, expandir o accordion "Configurações Balança", nele há todos os campos responsáveis pela configuração da mesma.
+2. Alterar o campo de "Usa balança" para "Sim". Ao fazer isso, irá liberar o restante dos campos de configuração de balança.
+3. **Todos os campos que aparecem ao selecionar "Sim" são obrigatórios e devem ser informados para o correto funcionamento da balança.**
+4. Esses campos devem ser preenchidos conforme as especificidades encontradas no manual de usuário da balança. Os campos são os seguintes:
+    * **Porta Serial:** campo onde o usuário deve informar em qual porta serial está conectada a balança.
+    * **Bits por Segundo:** campo onde o usuário deve informar a taxa de transferência de bits por segundo que a balança trabalha.
+    * **Tamanho bits:** campo onde o usuário deve informar o tamanho dos bits que compõe o dado real que será transmitido pela conexão serial.
+    * **Stop bit:** campo onde o usuário deve informar o stop bit, ou seja, o bit que é enviado no final de cada pacote de dados para indicar que a transmissão foi concluída.
+    * **Paridade:** campo onde o usuário deve informar o tipo de paridade que a balança possuí.
+    * **Protocolo da Balança:** campo onde o usuário deve informar o protocolo que a balança utiliza.
+
+## Config. Protocolo da Balança
+
+O protocolo de balança utilizado no dt.Shop deve ser "traduzido" do informado no manual de usuário da balança. O dt.Shop utiliza as seguintes letras:
+
+* *X:* desconsiderar.
+* *C:* código do item.
+* *B:* código de barras.
+* *P:* peso.
+* *F:* decimais do peso.
+* *V:* validae.
+* *L:* lote.
+
+Por exemplo, no caso da balança Prix Toledo 3 Fit, o Protocolo Prt 2 é o seguinte:
+* 1 Stop Bit.
+* 8 bits de dados.
+* Sem pariddade.
+* [STX][PPPPPP][CR]
+
+O valor de Stop Bit e de Bits de dados devem ser colocados nos campos correspondentes, já o protocolo da balança, **neste caso o [STX][PPPPPP][CR]**, deve ser
+ traduzido substituindo os bits do protocolo pelas letras informadas acima. **Neste caso**, a máscara ficaria da seguinte forma:
+
+ *  **[STX]:** vira o valor de X da máscara, pois não deverá ser levado em consideração na hora de buscar o peso.
+ *  **[PPPPPP]:** vira o valor de PPPPPP, pois é o valor de peso que o sistema levará em consideração.
+ *  **[CT]:** vira o valor de X, pois não deverá ser levado em consideração na hora de buscar o peso.
+
+O protocolo final, **NESTE CASO**, da balança ficaria como **XPPPPPPX**.
+
+Note que o tamanho final do protocolo traduzido ficou do mesmo tamanho de bits que é enviado da balança (Bits de dados), esta é uma regra que deve ser sempre seguida.
+
+:::warning[Cuidado]
+Não é necessário informar a diferenciação dos decimais no protocolo da balança, pois o sistema já possuí um tratamento interno para isso.
+:::
+
+## Venda com Itens Pesados
+
+Para adicionar um item com pesagem em uma venda, basta apenas selecinar o item nos campos de pesquisa no topo da página. Ao seleciona-lo, pode-se perceber que o 
+botão de adicionar terá um ícone de balanca. Se adicionar o item, irá iniciar o processo de busca pelo peso na balança, após o processo concluido,
+o item será adicionado corretamente na venda possuindo em sua quantidade o peso vindo da balança.
+
+## Classes de Comunicação
+
+No projeto, há duas classes responsáveis por realizar a comunicação com a dll da balança. São elas:
+
+* **BalancaStarter:** classe responsável apenas por retornar o path da dll, esse path possuí uma diferenciação que valida se o aplicativo está rodando em
+modo de depuração ou está em release.
+
+* **BalancaUtils:** classe responsável por fazer toda a parte da comunicação do flutter com a balança por meio da dll. Todo os valores e chamadas de função
+são realizados utilizando o package *import 'package:ffi/ffi.dart'* que permite realizar alguns comandos de baixo nível em flutter (ex: calloc, malloc, etc).
