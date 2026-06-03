@@ -1,0 +1,300 @@
+---
+sidebar_position: 0
+---
+
+# Configuração do Flutter
+
+Este tutorial cobre a instalação e configuração completa do **Flutter 3.35.4** nos sistemas operacionais Windows e macOS.
+
+:::warning[Versão utilizada]
+Atualmente a versão do flutter que estamos utilizando **Flutter 3.35.4** (hotfix estável, setembro de 2025).
+:::
+
+---
+
+## Pré-requisitos
+
+Antes de começar, certifique-se de que sua máquina atende os requisitos mínimos:
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+
+<Tabs>
+  <TabItem value="windows" label="🪟 Windows" default>
+    <ul>
+      <li>Windows 10 ou superior (64-bit)</li>
+      <li>Espaço em disco: mínimo 2,5 GB (sem contar IDE)</li>
+      <li><a href="https://git-scm.com/download/win">Git para Windows</a> instalado e no PATH</li>
+      <li>PowerShell 5.0 ou superior</li>
+    </ul>
+  </TabItem>
+  <TabItem value="macos" label="🍎 macOS">
+    <ul>
+      <li>macOS 12 (Monterey) ou superior</li>
+      <li>Espaço em disco: mínimo 2,5 GB (sem contar IDE e Xcode)</li>
+      <li>Git (já incluso no macOS via Xcode Command Line Tools)</li>
+      <li>Rosetta 2 para Macs com Apple Silicon (M1/M2/M3)</li>
+    </ul>
+  </TabItem>
+</Tabs>
+
+---
+
+## 1. Download do SDK
+
+Acesse o [Flutter SDK Archive](https://docs.flutter.dev/release/archive) e baixe o pacote correspondente ao seu sistema.
+
+<Tabs>
+  <TabItem value="windows" label="🪟 Windows" default>
+
+Baixe o arquivo `.zip` da versão **3.35.4** para Windows:
+
+```
+flutter_windows_3.35.4-stable.zip
+```
+
+Extraia o conteúdo em um diretório de sua preferência. Recomendamos:
+
+```
+C:\src\flutter
+```
+
+:::warning[Atenção]
+Evite extrair em caminhos que contenham espaços ou caracteres especiais (ex: `C:\Program Files`). Isso pode causar erros durante a execução do Flutter.
+:::
+
+  </TabItem>
+  <TabItem value="macos" label="🍎 macOS">
+
+Baixe o arquivo `.zip` da versão **3.35.4** para macOS, escolhendo a arquitetura correta:
+
+```
+# Intel (x86_64)
+flutter_macos_3.35.4-stable.zip
+
+# Apple Silicon (arm64 — M1/M2/M3)
+flutter_macos_arm64_3.35.4-stable.zip
+```
+
+Extraia o conteúdo em um diretório de sua preferência. Recomendamos:
+
+```
+~/development/flutter
+```
+
+  </TabItem>
+</Tabs>
+
+---
+
+## 2. Configurando o PATH
+
+Para que o comando `flutter` funcione em qualquer terminal, é necessário adicionar o SDK ao PATH do sistema.
+
+<Tabs>
+  <TabItem value="windows" label="🪟 Windows" default>
+
+1. Abra o menu **Iniciar** e pesquise por **"Editar as variáveis de ambiente do sistema"**
+2. Clique em **Variáveis de Ambiente...**
+3. Em **Variáveis do usuário**, selecione `Path` e clique em **Editar**
+4. Clique em **Novo** e adicione o caminho completo para a pasta `bin` do Flutter:
+
+```
+C:\src\flutter\bin
+```
+
+5. Clique em **OK** em todas as janelas abertas
+
+Para verificar, abra um novo **Prompt de Comando** ou **PowerShell** e execute:
+
+```powershell
+flutter --version
+```
+
+  </TabItem>
+  <TabItem value="macos" label="🍎 macOS">
+
+Abra o terminal e adicione o Flutter ao PATH no arquivo de configuração do seu shell.
+
+**Para zsh** (padrão no macOS Catalina e superior):
+
+```bash
+echo 'export PATH="$HOME/development/flutter/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**Para bash** (macOS mais antigo):
+
+```bash
+echo 'export PATH="$HOME/development/flutter/bin:$PATH"' >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+Para verificar, execute:
+
+```bash
+flutter --version
+```
+
+  </TabItem>
+</Tabs>
+
+A saída esperada é algo como:
+
+```
+Flutter 3.35.4 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision xxxxxxxx
+Engine • revision xxxxxxxx
+Tools • Dart 3.9.x • DevTools 2.48.x
+```
+
+---
+
+## 3. Instalando as Dependências
+
+<Tabs>
+  <TabItem value="windows" label="🪟 Windows" default>
+
+### Android Studio
+
+1. Baixe e instale o [Android Studio](https://developer.android.com/studio)
+2. Durante a instalação, selecione:
+   <ul>
+     <li>Android SDK</li>
+     <li>Android SDK Command-line Tools</li>
+     <li>Android Virtual Device (AVD)</li>
+   </ul>
+
+### Visual Studio (para desenvolvimento Windows Desktop)
+
+Para compilar apps Flutter para Windows, instale o [Visual Studio 2022](https://visualstudio.microsoft.com/) com a carga de trabalho **"Desenvolvimento para Desktop com C++"**.
+
+:::info[Cuidado]
+O Visual Studio é diferente do Visual Studio **Code**. Você precisará do Visual Studio completo para builds desktop no Windows.
+:::
+
+  </TabItem>
+  <TabItem value="macos" label="🍎 macOS">
+
+### Xcode (para iOS e macOS)
+
+1. Instale o Xcode pela [App Store](https://apps.apple.com/br/app/xcode/id497799835)
+2. Abra o Xcode e aceite os termos de licença, ou execute via terminal:
+
+```bash
+sudo xcodebuild -license accept
+```
+
+3. Instale as ferramentas de linha de comando do Xcode:
+
+```bash
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -runFirstLaunch
+```
+
+4. Instale o CocoaPods (gerenciador de dependências iOS):
+
+```bash
+sudo gem install cocoapods
+```
+
+### Android Studio (para Android)
+
+1. Baixe e instale o [Android Studio](https://edgedl.me.gvt1.com/edgedl/android/studio/install/2025.1.4.8/android-studio-2025.1.4.8-windows.exe) versão "Narwhal 4".
+2. Durante a configuração inicial, instale o Android SDK
+
+  </TabItem>
+</Tabs>
+
+---
+
+## 4. Aceitando as Licenças do Android
+
+Independente do sistema operacional, após instalar o Android Studio é necessário aceitar as licenças do SDK:
+
+```bash
+flutter doctor --android-licenses
+```
+
+Responda `y` para todas as perguntas.
+
+---
+
+## 5. Verificando a Instalação com flutter doctor
+
+O comando `flutter doctor` analisa o ambiente e aponta o que está faltando ou mal configurado:
+
+```bash
+flutter doctor
+```
+
+Uma saída saudável se parece com isso:
+
+```
+Doctor summary (to see all details, run flutter doctor -v):
+[✓] Flutter (Channel stable, 3.35.4)
+[✓] Windows Version (Installed version of Windows is version 10 or higher)
+[✓] Android toolchain - develop for Android devices (Android SDK version 35.0.0)
+[✓] Chrome - develop for the web
+[✓] Visual Studio - develop Windows apps (Visual Studio Community 2022 17.x)
+[✓] Android Studio (version 2024.x)
+[✓] VS Code (version 1.9x)
+[✓] Connected device (x available)
+[✓] Network resources
+
+• No issues found!
+```
+
+:::tip[Atenção]
+Não se preocupe se nem todos os itens estiverem marcados com `[✓]` logo de início — resolva os problemas apontados pelo `flutter doctor` um a um.
+:::
+
+---
+
+## 6. Configurando o Editor (VS Code)
+
+O VS Code é o editor mais utilizado para desenvolvimento Flutter na Datachamp.
+
+1. Instale o [VS Code](https://code.visualstudio.com/)
+2. Abra o VS Code e acesse a aba de **Extensões** (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Instale as extensões:
+   - **Flutter** (publicada pelo time dart-code)
+   - **Dart** (instalada automaticamente junto com Flutter)
+
+Após instalar, reinicie o VS Code. O editor irá detectar automaticamente o SDK do Flutter configurado no PATH.
+
+---
+
+## 7. Criando e Rodando o Primeiro Projeto
+
+Abra o terminal e execute:
+
+```bash
+# Criar novo projeto
+flutter create meu_app
+
+# Entrar na pasta
+cd meu_app
+
+# Rodar o app
+flutter run
+```
+
+Se um emulador ou dispositivo estiver conectado, o app será compilado e executado automaticamente.
+
+---
+
+## Problemas Comuns
+
+| Erro | Causa | Solução |
+|------|-------|---------|
+| `flutter: command not found` | PATH não configurado corretamente | Revise o passo 2 e reabra o terminal |
+| `Android license status unknown` | Licenças não aceitas | Execute `flutter doctor --android-licenses` |
+| `CocoaPods not installed` (macOS) | CocoaPods ausente | Execute `sudo gem install cocoapods` |
+| `Unable to locate Android SDK` | SDK não encontrado | Abra o Android Studio e configure o caminho do SDK em Preferences > SDK Manager |
+| Xcode não encontrado (macOS) | Xcode não instalado ou caminho incorreto | Execute `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer` |
+
+---
+
+*Para dúvidas adicionais, consulte a [documentação oficial do Flutter](https://docs.flutter.dev) ou fale com o time de desenvolvimento Datachamp.*
