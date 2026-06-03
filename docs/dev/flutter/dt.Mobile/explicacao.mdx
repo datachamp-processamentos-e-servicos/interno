@@ -1,0 +1,557 @@
+---
+sidebar_position: 0
+---
+
+# O que é o dt.Mobile
+
+O **dt.mobile** é um sistema para potencializar o desempenho da equipe comercial, ampliando os resultados de representantes, vendedores e administradores por meio de recursos práticos e eficientes.
+
+Com o aplicativo é possível realizar vendas, cadastrar clientes e produtos e registrar visitas comerciais — tudo **sem necessidade de conexão com a internet**. As operações realizadas offline podem ser sincronizadas posteriormente assim que a conexão for restabelecida.
+
+:::tip[Integração com o Sentus]
+O dt.Mobile é ainda mais completo para clientes Datachamp que utilizam o **Sentus Web**, permitindo sincronização automática de clientes, itens, formas de pagamento e muito mais.
+:::
+
+---
+
+## 1. Configuração
+
+### 1.1 Primeira Tela
+
+Ao abrir o aplicativo pela primeira vez, é exibida a tela de boas-vindas informando que o sistema foi desenvolvido exclusivamente para representantes comerciais. Clique em **Avançar** para prosseguir.
+
+### 1.2 Tipo de Integração
+
+Na tela seguinte, o usuário escolhe como irá utilizar o aplicativo:
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Para usuários com cadastro no <strong>Sentus Web</strong>. Ao avançar, o usuário é encaminhado para o login via Sentus e obtém acesso automático a todos os cadastros do ERP.</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Para usuários sem acesso ao Sentus. O cadastro é feito por <strong>e-mail</strong> ou conta Google. Neste modo, os cadastros de clientes e produtos são gerenciados manualmente pelo próprio usuário.</p>
+  </TabItem>
+</Tabs>
+
+### 1.3 Login
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <ul>
+      <li><strong>Usuário</strong> — nome de login com domínio (ex: <code>usuario@empresa</code>, <strong>não</strong> apenas <code>usuario</code>)</li>
+      <li><strong>Senha</strong> — mesma senha utilizada no Sentus Web</li>
+    </ul>
+    <p>Um botão no canto superior esquerdo lista os usuários que já realizaram login anteriormente. Caso o login selecionado não tenha sido acessado há mais de 10 dias, a senha será solicitada novamente.</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <ul>
+      <li><strong>Usuário</strong> — e-mail cadastrado na criação da conta</li>
+      <li><strong>Senha</strong> — senha definida no cadastro</li>
+    </ul>
+    <p>Opções adicionais disponíveis nesta tela:</p>
+    <ul>
+      <li><strong>Esqueci minha senha</strong> — envia e-mail de recuperação</li>
+      <li><strong>Acessar com o Google</strong> — autenticação via conta Google</li>
+      <li><strong>Cadastre-se</strong> — redireciona para a criação de conta</li>
+    </ul>
+  </TabItem>
+</Tabs>
+
+### 1.4 Cadastro por E-mail
+
+Disponível apenas na integração por e-mail. Campos obrigatórios:
+
+- **E-mail** — será usado para autenticação
+- **Senha** — mínimo de seis caracteres
+- **Repita a senha** — confirmação da senha
+
+Após preencher todos os campos e clicar em **Criar Conta**, um e-mail de confirmação será enviado. O cadastro só é liberado após a confirmação do link recebido.
+
+---
+
+## 2. Primeiro Acesso
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Ao realizar o primeiro acesso via Sentus, um diálogo solicita a sincronização inicial com o ERP.</p>
+    <p>:::warning Sincronização obrigatória</p>
+    <p>Cancelar a sincronização inicial restringe severamente o uso do aplicativo, pois a maior parte dos dados essenciais ainda não estará disponível.</p>
+    <p>:::</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Uma notificação no topo da tela solicita a conclusão do cadastro. Ao clicar em <strong>Configurar</strong>, campos adicionais são solicitados:</p>
+    <ul>
+      <li><strong>CPF*</strong>, <strong>Nome*</strong>, <strong>UF*</strong>, <strong>Município*</strong> — obrigatórios</li>
+      <li>Telefone, CEP, Número, Complemento, Bairro — opcionais</li>
+    </ul>
+    <p>Em seguida, o usuário define seu perfil de atuação: <strong>representante autônomo</strong> (pode representar várias empresas) ou <strong>vinculado a uma única empresa</strong> (necessário cadastrar a empresa na próxima etapa).</p>
+  </TabItem>
+</Tabs>
+
+---
+
+## 3. Tela Principal
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Após a sincronização inicial, a tela principal exibe:</p>
+    <ul>
+      <li><strong>Menu Lateral</strong> — botão no canto superior esquerdo com acesso a todas as funcionalidades</li>
+      <li><strong>Nome e Logo da Empresa</strong> — empresa vinculada ao representante autenticado</li>
+      <li><strong>Notificação</strong> — avisos e comunicados configurados pela empresa (opcional)</li>
+      <li><strong>Botão flutuante (+)</strong> — criação rápida de pedido ou venda (venda disponível após iniciar uma carga)</li>
+      <li><strong>Menu inferior</strong> — acesso rápido a Clientes, Itens, Pedidos e Atendimentos</li>
+    </ul>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>A tela principal exibe:</p>
+    <ul>
+      <li><strong>Menu Lateral</strong> — botão no canto superior esquerdo com acesso às funcionalidades disponíveis</li>
+      <li><strong>Logo da Empresa</strong> — logotipo cadastrado pelo usuário</li>
+      <li><strong>Botão flutuante (+)</strong> — criação rápida de pedido</li>
+      <li><strong>Menu inferior</strong> — acesso rápido a Clientes, Itens, Pedidos e Atendimentos</li>
+    </ul>
+  </TabItem>
+</Tabs>
+
+O canto superior direito possui um menu com **Política de Privacidade**, **Ajuda** e **Compartilhar Logs** (uso do suporte Datachamp).
+
+---
+
+## 4. Menu Lateral
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+
+| Opção | Descrição |
+|-------|-----------|
+| **Pedidos** | Listagem de pedidos do aplicativo |
+| **Orçamento** | Listagem de orçamentos |
+| **Venda Fora do Estab.** | Submenu: Carga, Nova Venda, Vendas, Repasse |
+| **Atendimentos** | Listagem de atendimentos |
+| **Relatórios** | Submenu: Tabela Flex, Resumo Total, Rel. Vendas, Posição Financeira, Saldo Flex |
+| **Cadastros** | Submenu: Clientes, Itens, Grupos de Itens, Formas de Pagamento |
+| **Sincronizar** | Submenu: Enviar dados, Receber dados, Exportar |
+| **Sair** | Fecha o aplicativo |
+
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+
+| Opção | Descrição |
+|-------|-----------|
+| **Pedidos** | Listagem de pedidos |
+| **Cadastros** | Submenu: Clientes, Itens, Grupo de Itens |
+| **Venda Fora do Estab.** | ⚠️ Indisponível — contate a Datachamp |
+| **Atendimentos** | ⚠️ Indisponível — contate a Datachamp |
+| **Relatórios** | Apenas Relatório de Vendas disponível |
+| **Parâmetros** | Formas de Pagamento |
+| **Configurações** | Submenu: Empresa, Importar, Exportar |
+| **Sair** | Fecha o aplicativo |
+
+  </TabItem>
+</Tabs>
+
+O canto superior do menu lateral exibe o nome do usuário logado e um botão com opções adicionais: **Perfil**, **Backup**, **Restaurar**, **Usuários** e **Sair da Conta**.
+
+---
+
+## 5. Configurações do Usuário
+
+### 5.1 Perfil
+
+Exibe as informações do representante autenticado. Os campos variam conforme o tipo de pessoa:
+
+<Tabs>
+  <TabItem value="pj" label="🏢 Pessoa Jurídica" default>
+    <p>Código, CNPJ, Nome, Nome Fantasia, Ind IE, Inscrição Estadual, Regime Tributário, CEP, Município, UF, Logradouro, Número, Bairro, Complemento, E-mail, Telefone, Tags, Situação, Informações, Observações.</p>
+  </TabItem>
+  <TabItem value="pf" label="👤 Pessoa Física">
+    <p>Código, CPF, Nome, Ind IE, Inscrição Estadual, CEP, Município, UF, Logradouro, Número, Bairro, Complemento, E-mail, Telefone, Tags, Situação, Observações.</p>
+  </TabItem>
+</Tabs>
+
+### 5.2 Backup
+
+Selecione a **Base Principal** e/ou a **Base Usuário** e clique em **Exportar** para salvar os arquivos de backup no dispositivo.
+
+### 5.3 Restaurar
+
+Selecione a base desejada e clique em **Restaurar**. Todos os dados existentes serão apagados e substituídos pelo backup selecionado.
+
+:::warning[Cuidado]
+A operação de restauração é irreversível.
+:::
+
+### 5.4 Usuários
+
+Lista os usuários autenticados no aplicativo. É possível remover um usuário ou adicionar um novo clicando no botão **+** (redireciona para a tela de login).
+
+### 5.5 Sair da Conta
+
+Encerra a sessão do usuário atual e redireciona para a tela de login.
+
+---
+
+## 6. Pedidos
+
+### 6.1 Listagem de Pedidos
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Exibe os pedidos em cartões com: código e nome do cliente, número, valor, data de emissão, data de embarque e status.</p>
+    <p><strong>Status possíveis:</strong> Sincronizado, Não sincronizado, Pendências, Não aprovado, Não sincronizado por pendências, Excluído.</p>
+    <p><strong>Ações por pedido (menu ⋮):</strong> PDF, Editar, Visualizar, Acompanhamento, Duplicar, Remover, Ligar.</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Exibe os pedidos em cartões com: código e nome do cliente, número, valor, data de emissão, data de embarque e situação.</p>
+    <p><strong>Situações possíveis:</strong> Novo, Faturado, Encerrado, Cancelado.</p>
+    <p><strong>Ações por pedido (menu ⋮):</strong> PDF, Editar, Duplicar, Remover, Ligar.</p>
+  </TabItem>
+</Tabs>
+
+A busca avançada (botão ⋮ ao lado da pesquisa) permite filtrar por data, cliente, operação e status/situação.
+
+### 6.2 Criação de Pedido
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+
+| Campo | Descrição |
+|-------|-----------|
+| Número do Pedido | Exibido no topo (numeração local, alterada ao enviar ao ERP) |
+| Estabelecimento | Não editável |
+| Emissão | Não editável |
+| Embarque | Editável via calendário |
+| Operação | Operação do pedido |
+| Frete | CIF, FOB, FCA/FAS, P.Remet, P.Dest, S/F |
+| Cliente | Redireciona para a listagem de clientes |
+| Transportadora | Visível quando frete = FOB |
+| Itens do Pedido | Quantidade de itens, valor de mercadoria e total |
+| Pagamento | Redireciona para formas de pagamento |
+| Observação | Campo livre |
+| Enviar Pedido | Marcador de envio automático ao Sentus |
+
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+
+| Campo | Descrição |
+|-------|-----------|
+| Número do Pedido | Exibido no topo |
+| Emissão | Não editável |
+| Embarque | Editável via calendário |
+| Frete | CIF, FOB, FCA/FAS, P.Remet, P.Dest, S/F (padrão) |
+| Cliente | Redireciona para a listagem de clientes |
+| Itens do Pedido | Quantidade de itens, valor de mercadoria e total |
+| Pagamento | Redireciona para formas de pagamento |
+| Observações | Campo livre |
+
+  </TabItem>
+</Tabs>
+
+### 6.3 Adição de Itens no Pedido
+
+A tela de adição de itens é dividida em abas de navegação:
+
+| Aba | Descrição |
+|-----|-----------|
+| **Produtos** | Lista todos os itens disponíveis |
+| **Últ. Compras** | Últimos itens comprados pelo cliente selecionado |
+| **Carrinho** | Itens já adicionados ao pedido |
+| **Mais** *(Sentus)* | Submenu com Promoções, Segmentos e Regras Comerciais |
+
+**Tipos de cartão de produto (Sentus):**
+
+| Cor | Significado |
+|-----|-------------|
+| Branco | Cartão padrão com botões + e - |
+| Verde | Item em promoção (Matriz Comercial de Promoção) |
+| Laranja | Preço de última compra disponível |
+
+:::note[Cartão sem botão +/-]
+Alguns itens exigem clicar no cartão para abrir a tela de **Dados do Item**, onde a quantidade é digitada manualmente.
+:::
+
+#### Dados do Item (Sentus)
+
+| Campo | Descrição |
+|-------|-----------|
+| Matriz Comercial | Matriz utilizada (troca via botão, se habilitado no Sentus) |
+| Variação de UN | Unidade comercial do produto (ex: Caixa 5KG, Caixa 10KG) |
+| Quantidade | Quantidade a adicionar |
+| Unitário | Preço unitário (editável) |
+| Desconto | Percentual de desconto |
+| Total | Valor total calculado |
+| Número (xPed) / Item (nItemPed) | Referência ao pedido de compra do cliente |
+| Observação Interna | Campo opcional (habilitado via parâmetro no Sentus) |
+
+---
+
+## 7. Orçamentos
+
+Disponível apenas na integração com o Sentus.
+
+A tela de listagem exibe orçamentos em cartões com: código e nome do cliente, número, valor, datas e status (Novo / Finalizado). Ações disponíveis: PDF, Visualizar, Duplicar, Remover.
+
+A tela de criação é idêntica à de pedidos, com um cartão informativo destacando que se trata de um orçamento. Campos: Estabelecimento, Emissão, Operação, Frete, Cliente, Transportadora, Itens, Pagamento, Observações.
+
+---
+
+## 8. Venda Fora do Estabelecimento
+
+Disponível apenas na integração com o Sentus.
+
+### 8.1 Carga
+
+Antes de iniciar vendas fora do estabelecimento, é necessário registrar uma carga:
+
+1. Acesse **Menu Lateral → Venda Fora do Estab. → Carga**
+2. Escaneie o código de barras ou digite a chave da **NF-e**
+3. A NF-e aparece como cartão com: número, data de emissão, valor total e quantidade de itens
+4. Clique em **Encerrar Carga** para remover a NF-e ativa
+
+A tela **Itens da Carga** exibe os itens da NF-e registrada com código, nome, NFe de origem, quantidade disponível e cálculo de valor.
+
+### 8.2 Nova Venda
+
+| Campo | Descrição |
+|-------|-----------|
+| Emissão | Editável via calendário |
+| Tipo | NF-e ou NFC-e |
+| Operação | Operação da venda |
+| Matriz Comercial | Define preços conforme matriz selecionada |
+| Cliente | Redireciona para listagem de clientes |
+| Itens | Itens, Quantidade, Mercadoria, Total + menu de Desconto e Impostos |
+| Pagamento | Redireciona para formas de pagamento |
+| Observações | Campo livre |
+
+### 8.3 Vendas
+
+A listagem exibe as vendas com: código e nome do cliente, tipo de nota, valor, emissão e status.
+
+**Status possíveis:** Novo, Em processamento, Rejeitada, Autorizado, Denegada, Cancelado, Encerrado.
+
+**Ações por venda (menu ⋮):** Editar, Remover, Ligar, Enviar.
+
+### 8.4 Repasse
+
+Permite registrar repasses ao ERP. Campos da criação: data de emissão (não editável), valor, cliente (obrigatório) e observação. Ações por repasse: Remover, Sincronizar, Recibo.
+
+---
+
+## 9. Atendimentos
+
+:::info[Atenção]
+Disponível apenas na integração com o **Sentus**.
+:::
+
+A listagem exibe os atendimentos com: nome do cliente, data, número e status (**Aguardando envio** ou **Sincronizado**). Ações variam conforme o status: sincronizar ou remover.
+
+### Criação de Atendimento
+
+Campos obrigatórios: **Emissão**, **Modalidade** (Presencial ou Remoto) e **Cliente**. Campo opcional: **Observações**.
+
+O botão **Sincronizar Atendimento** define se o atendimento será enviado ao ERP após salvar. É possível anexar fotos via câmera ou galeria.
+
+---
+
+## 10. Relatórios
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+
+| Relatório | Descrição |
+|-----------|-----------|
+| **Tabela Flex** | Histórico de documentos por período. Exibe valor total, valor de tabela, diferença e percentual |
+| **Resumo Total** | Totalizadores do período: clientes, positivados, vendas, faturamento, ticket médio, itens, comissões |
+| **Relatório de Vendas** | Documentos, itens ou grupos de itens com filtros de tipo, período e cliente |
+| **Posição Financeira** | Títulos do ERP filtrados por vencimento e situação (Em aberto, Vencidas, Pagos, Todas) |
+| **Saldo Flex (online)** | Movimentações flex via consulta online; exibe saldo inicial e final do período |
+
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+
+| Relatório | Descrição |
+|-----------|-----------|
+| **Relatório de Vendas** | Único relatório disponível. Filtra por tipo de documento, período e cliente |
+
+  </TabItem>
+</Tabs>
+
+### Tela de Filtro (padrão)
+
+Todos os relatórios possuem uma tela de filtro antes do resultado. Os filtros comuns são **Data Inicial** e **Data Final**. Após clicar em **Pesquisar**, o usuário é encaminhado para a tela do relatório.
+
+---
+
+## 11. Clientes
+
+### 11.1 Listagem de Clientes
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Cartões exibem nome, código e endereço. Botões rápidos no cartão: Telefone, WhatsApp, Cédula (posição financeira), Envelope (e-mail), Relógio (últimas compras), Localização.</p>
+    <p><strong>Indicadores de situação por cor do cartão:</strong></p>
+    <ul>
+      <li>Branco — ativo</li>
+      <li>Amarelo — restrição</li>
+      <li>Azul — orçamento ou pedido em aberto</li>
+      <li>Vermelho escuro — bloqueado</li>
+      <li>Vermelho claro — inativo</li>
+    </ul>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Cartões exibem nome, código e endereço. Botões rápidos: Telefone, WhatsApp, Envelope, Relógio, Localização.</p>
+    <p><strong>Indicadores de situação por cor do cartão:</strong></p>
+    <ul>
+      <li>Branco — ativo</li>
+      <li>Amarelo — restrição</li>
+      <li>Vermelho escuro — bloqueado</li>
+      <li>Vermelho claro — inativo</li>
+    </ul>
+  </TabItem>
+</Tabs>
+
+A busca avançada permite filtrar por UF, Município, Situação e Tags.
+
+### 11.2 Cadastro de Cliente
+
+<Tabs>
+  <TabItem value="pf" label="👤 Pessoa Física" default>
+    <p>Campos: Código, CPF, Nome, Ind IE, I.E., CEP, Município, UF, Logradouro, Número, Bairro, Complemento, E-mail, Telefone, Tags, Situação, Observações, Horário de Entrega, Tipo de Cliente.</p>
+  </TabItem>
+  <TabItem value="pj" label="🏢 Pessoa Jurídica">
+    <p>Campos adicionais em relação à Pessoa Física: CNPJ (com botão de consulta), Nome Fantasia, Regime Tributário.</p>
+  </TabItem>
+</Tabs>
+
+---
+
+## 12. Itens
+
+### 12.1 Listagem de Itens
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Cartões exibem código, nome, unidade comercial, grupo, preço e imagem. Ações no menu ⋮: Imagens, Última Atualização, Últimas Vendas.</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Mesmas informações que o Sentus. Ações adicionais no menu ⋮: Remover.</p>
+    <p>Botão <strong>+</strong> na parte inferior direciona para o cadastro de item.</p>
+  </TabItem>
+</Tabs>
+
+**Cores dos cartões:** Branco (ativo), Amarelo (bloqueado ou restrito), Vermelho (inativo).
+
+A busca avançada permite filtrar por Nome, Referência, Grupo de Produtos e Ordenação (Nome, Referência, Grupo+Nome, Grupo+Referência, Data de Alteração).
+
+### 12.2 Cadastro de Item
+
+Disponível apenas na integração por **E-mail**.
+
+| Campo | Obrigatório | Descrição |
+|-------|-------------|-----------|
+| Descrição | ✓ | Nome do item |
+| Referência | ✓ | Código de referência |
+| Grupo | ✓ | Grupo ao qual pertence |
+| Código de Barras | — | Código de barras do item |
+| UN | ✓ | Unidade de venda (kg, un, etc.) |
+| Preço | ✓ | Preço de venda |
+| Preço Mínimo | — | Controla limite de desconto |
+| Peso Bruto / Líquido | — | Pesos do item |
+| Situação | ✓ | Ativo (padrão), Bloqueado, Removido, Inativo, Restrição |
+| Tags / Especificações / Observações | — | Campos livres |
+
+---
+
+## 13. Grupo de Itens
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Exibe grupos sincronizados do Sentus Web. A <strong>edição não é permitida</strong> pelo app — deve ser feita no Sentus Web. Ao clicar em um grupo, são exibidos campos de visualização: Descrição, Situação, Observações e ID de Origem.</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Um grupo <strong>"Diversos"</strong> é criado automaticamente no primeiro acesso. Grupos podem ser criados, editados e removidos pelo usuário.</p>
+    <p><strong>Campos do cadastro:</strong> Descrição (obrigatório), Situação (opcional), Observação (opcional).</p>
+    <p>:::warning Exclusão permanente: uma vez removido, o grupo não pode ser recuperado. :::</p>
+  </TabItem>
+</Tabs>
+
+---
+
+## 14. Formas de Pagamento
+
+<Tabs>
+  <TabItem value="sentus" label="🔗 Sentus" default>
+    <p>Exibe formas de pagamento sincronizadas do Sentus Web. A <strong>edição não é permitida</strong> pelo app. Ao clicar, são exibidos: Código, Nome, Cobrança, Modalidade e ID de Origem.</p>
+  </TabItem>
+  <TabItem value="email" label="📧 E-mail">
+    <p>Uma forma <strong>"À VISTA"</strong> é criada automaticamente. O usuário pode criar, editar e remover formas.</p>
+    <p><strong>Campos do cadastro:</strong></p>
+    <ul>
+      <li><strong>Nome</strong> (obrigatório)</li>
+      <li><strong>Cobrança</strong> (opcional)</li>
+      <li><strong>Modalidade</strong> (opcional) — Dinheiro, Cheque, Cartão de Crédito, Cartão de Débito, PIX, Boleto Bancário, entre outros</li>
+      <li><strong>Situação</strong> (padrão: Ativo)</li>
+    </ul>
+  </TabItem>
+</Tabs>
+
+---
+
+## 15. Sincronização
+
+Disponível apenas na integração com o **Sentus**.
+
+### 15.1 Receber Dados
+
+Importa dados do Sentus Web para o app: clientes, itens, formas de pagamento, matrizes comerciais e compras.
+
+| Tipo de Sincronização | Descrição |
+|-----------------------|-----------|
+| **Total** | Recria inteiramente a base de dados (obrigatória no primeiro acesso) |
+| **Incremental** | Apenas dados modificados após a última sincronização |
+| **Últimas 24h / 48h** | Apenas dados modificados no período |
+| **Apenas últimas compras** | Somente histórico de compras |
+
+:::tip[Cuidado]
+Quanto maior o período selecionado na sincronização Total, mais tempo ela levará.
+:::
+
+Marcadores disponíveis: **Dados Cadastrais** (obrigatório), **Dados Comerciais** (obrigatório), **Últimas Compras** (opcional).
+
+### 15.2 Enviar Dados
+
+Envia para o Sentus Web os dados gerados no app: atendimentos, clientes, pedidos, vendas, orçamentos e repasses. É possível selecionar quais tipos de dados serão enviados.
+
+### 15.3 Exportar
+
+Gera um arquivo **.CSV** dos pedidos realizados no app. Permite filtrar por período (Data Inicial e Data Final).
+
+---
+
+## 16. Configurações E-mail
+
+Disponível apenas na integração por **E-mail** (Menu Lateral → Configurações).
+
+### 16.1 Empresa
+
+Tela de cadastro e edição dos dados da empresa representada. Para Pessoa Jurídica, o campo CPF é substituído por CNPJ e o campo Nome Fantasia é exibido.
+
+Campos: Código, CPF/CNPJ, Nome, Nome Fantasia (PJ), Ind IE, I.E., CEP, Município, UF, Logradouro, Número, Bairro, Complemento, E-mail, Telefone, Tags, Situação, Observações.
+
+### 16.2 Importar (Clientes/Produtos)
+
+Permite importar clientes ou itens a partir de arquivos **.CSV** ou **.TXT**. Após o upload, os dados extraídos são exibidos em uma listagem de pré-visualização antes de serem salvos.
+
+### 16.3 Exportar (Clientes, Itens e Pedidos)
+
+Gera arquivos **.CSV** dos dados cadastrados. Tipos disponíveis: Clientes, Itens e Pedidos.
+
+Para Pedidos, é possível escolher entre exportar **Todos** ou apenas pedidos de um **período específico** (Data Inicial e Data Final).
+
+---
+
+*Documentação baseada no Manual do Usuário dt.Mobile — Datachamp, Janeiro de 2026*
