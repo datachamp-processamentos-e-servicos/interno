@@ -1,0 +1,29 @@
+---
+sidebar_position: 3
+---
+# Bloqueio de Pedidos
+Em alguns casos é possivel realizar uma configuração no Sentus Web para que o aplicativo bloqueie alguns pedidos que contenham algumas parâmetros ou casos 
+especificos.
+
+## Estoque Insuficiente
+É possível realizar uma configuração no Sentus para que, se um pedido for realizado e o mesmo estiver com estoque insuficiente, o pedido não é enviado e 
+fica na situação "Não Sincronizado Por Pendências". O pedido também ficará com uma mensagem informando o porquê de estar com esta situação, para validar a mesma,
+basta clicar no botão de "Informação" que aparece no card de listagemd o pedido.
+
+### Configuração no Sentus
+Para configurar este parâmetro no Sentus, basta apenas:
+1. Entrar nos emitentes da tenant que deseja configurar.
+2. Na listagem de emitentes, clicar no botão de "+" localizado nas "Ações".
+3. No dropdown que aparecer, ir na opção "Regras e Parâmetros".
+4. Na listagem de parâmetros, há uma opção chamada "Repr - Mobile - Forma de Atualizacao DT.Mobile (Se nao tem no repr, vale do emitente) [355]".
+5. Para poder ativar o bloqueio ao enviar pedidos se tiver um item se estoque deve-se selecionar uma das seguintes opções:
+    * "3 - Opção 2 + Bloqueia Envio Se Não Tiver Estoque"
+    * "5 - Opção 4 + Bloqueia Envio Se Não Tiver Estoque"
+  
+### Fluxo no App
+No aplicativo, o fluxo para validação deste campo segue da seguinte maneira:
+1. O pedido é realizado normalmente normalmente no dt.Mobile.
+2. O mesmo é enviado ao Sentus que realiza a validação de estoque.
+3. O Sentus retorna o status "PROD_PROGRAMADO" e uma mensagem de erro.
+4. No aplicativo, o retorno é tratado e adicionado ao pedido.
+5. O pedido é salvo no banco de dados com o status "Não Sincronizado Por Pendências", a mensagem é adicionada ao pedido e o mesmo não é salvo no Sentus
