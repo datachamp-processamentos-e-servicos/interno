@@ -1,0 +1,244 @@
+---
+sidebar_position: 1
+---
+
+# Estrutura de Diretórios
+
+Este documento detalha a arquitetura de pastas e a separação de responsabilidades do **Sentus Mobile**. O projeto está dividido em quatro módulos principais: `common`, `core`, `services` e `view`.
+
+:::info[Caminho raiz]
+Todo o código-fonte vive em `lib/br/com/datachamp/sentus/`.
+:::
+
+---
+
+## Visão Geral
+
+```
+lib/br/com/datachamp/sentus/
+├── common/
+├── core/
+├── services/
+└── view/
+```
+
+| Módulo | Responsabilidade |
+|--------|-----------------|
+| `common/` | Elementos globais acessíveis por qualquer módulo |
+| `core/` | Persistência local (SQLite, DAOs, entidades) |
+| `services/` | Integração com web services externos |
+| `view/` | Apresentação Flutter (telas, cubits, widgets) |
+
+---
+
+## 1. Common
+
+Centraliza tudo que pode ser acessado por qualquer módulo do sistema.
+
+```
+common/
+├── constants/      # Constantes globais (campos, estados, URLs)
+├── enums/          # Enumerações de domínio (situações, tipos, modalidades…)
+├── exceptions/     # Exceções customizadas (ServiceException, NotFoundException…)
+├── states/         # Estados de atividade compartilhados (ActivityState)
+├── to/             # Transfer Objects trafegados entre camadas (PedidoTO, ConfigTO…)
+└── utils/          # Helpers de baixo nível sem regra de negócio
+```
+
+Exemplos de utilitários em `utils/`: `StringHelper`, `FormatUtils`, `DateHelper`, `JWT`, `Credentials`.
+
+:::warning[Regra de dependência]
+Nenhum arquivo de `common` pode importar de `core`, `services` ou `view`. A dependência é **sempre no sentido inverso**.
+:::
+
+---
+
+## 2. Core
+
+Camada de **persistência local**. Gerencia entidades, acesso ao banco SQLite e utilitários de infraestrutura de dados.
+
+```
+core/
+├── entity/         # Entidades persistidas no banco local
+│   ├── participante.dart
+│   ├── pedido.dart
+│   ├── pedido_item.dart
+│   ├── item.dart
+│   └── …
+├── dao/            # Classes de acesso ao banco (*DAO)
+│   ├── participante_dao.dart
+│   ├── pedido_dao.dart
+│   ├── item_dao.dart
+│   └── …
+└── utils/          # Infraestrutura de banco de dados
+    ├── connection.dart             # Provedor de conexão SQLite
+    ├── crud.dart                   # Operações genéricas de CRUD
+    ├── dao_gen.dart                # Gerador base de DAOs
+    ├── create_tables_master.dart   # DDL do banco master
+    ├── create_tables_tenant.dart   # DDL do banco tenant
+    ├── upgrade_master.dart         # Migrations do banco master
+    └── upgrade_tenant.dart         # Migrations do banco tenant
+```
+
+### Abstrações Fundamentais
+
+Todas as classes do `core` herdam de contratos base para garantir padronização e evitar repetição de código:
+
+| Abstração | Aplicada em |
+|-----------|-------------|
+| `AbstractEntity` | Todas as entidades |
+| `AbstractDAO` / `AbstractEntityDAO` | Todos os DAOs |
+
+---
+
+## 3. Services
+
+Camada de **integração com web services externos**. Cada arquivo `*_service.dart` é responsável por comunicar-se com um endpoint específico da API.
+
+```
+services/
+├── auth_service.dart
+├── participante_service.dart
+├── pedido_service.dart
+├── item_service.dart
+├── nfe_service.dart
+├── interceptor_service.dart    # Interceptor HTTP global (auth, erros)
+├── logging_service.dart
+└── …
+```
+
+:::note[Convenções]
+- Todos os services herdam de `AbstractService`
+- A comunicação HTTP é centralizada pelo `HttpHandler` (em `core/utils`)
+- Não há serialização inline — cada entidade possui sua própria classe de serialização JSON
+:::
+
+---
+
+## 4. View
+
+Camada de **apresentação Flutter**. Concentra telas, controladores (blocs/cubits), rotas e componentes visuais.
+
+```
+view/
+├── <seção>/
+│   ├── blocs/      # Cubits e Blocs da seção
+│   ├── screens/    # Telas e cards específicos da seção
+│   ├── states/     # Estados dos blocs da seção
+│   └── widgets/    # Widgets usados apenas nessa seção
+│
+├── utils/          # Utilitários de apresentação (sem regras de negócio)
+├── validators/     # Validadores de campos para formulários
+└── widgets/        # Componentes reutilizáveis em qualquer seção
+```
+
+### Seções disponíveis
+
+| Pasta | Descrição |
+|-------|-----------|
+| `acesso/` | Login e autenticação |
+| `app_state/` | Estado global da aplicação |
+| `atendimentos/` | Módulo de atendimentos |
+| `comercial/` | Vendas, pedidos (Sentus e Email) e repasses |
+| `config/` | Configurações, primeiro acesso e sincronização |
+| `itens/` | Catálogo de itens e grupos |
+| `participantes/` | Clientes, representantes, transportadoras e estabelecimentos |
+| `relatorios/` | Relatórios (vendas, resumo total, posição financeira, saldo flex, tabela flex) |
+
+### Utilitários visuais (`view/utils`)
+
+| Arquivo | Responsabilidade |
+|---------|-----------------|
+| `named_routes.dart` | Mapeamento de rotas nomeadas |
+| `nav_bottom_bar.dart` | Configuração da barra de navegação inferior |
+| `dialogs.dart` | Helpers para exibição de diálogos |
+| `platform_utils.dart` | Detecção e utilitários de plataforma |
+| `scanner_utils.dart` | Leitura de código de barras / QR Code |
+| `FileUtils.dart` | Manipulação de arquivos na camada de view |
+| `theme/` | Definição de temas (`color_main`, `white_theme`, `dark_theme`) |
+
+### Sub-seções de `comercial/pedidos/`
+
+Pedidos possui dois sub-módulos independentes, cada um com sua própria estrutura de `blocs/screens/states/`:
+
+```
+comercial/pedidos/
+├── sentus/         # Pedidos integrados ao ERP Sentus
+│   ├── blocs/
+│   ├── helper/
+│   ├── screens/
+│   ├── states/
+│   └── widgets/
+└── email/          # Pedidos enviados por e-mail
+    ├── blocs/
+    ├── screens/
+    └── states/
+```
+
+### Sub-telas de `participantes/screens/`
+
+```
+participantes/screens/
+├── contato_adic/       # Contatos adicionais do participante
+├── endereco_entrega/   # Endereços de entrega
+└── localization/       # Localização geográfica (mapas)
+```
+
+### Widgets globais vs. widgets de seção
+
+| Onde colocar | Critério |
+|--------------|----------|
+| `view/widgets/` | Reutilizável em qualquer seção (ex: `InputField`, `ButtonWidget`, `CardWidget`) |
+| `view/<seção>/widgets/` | Exclusivo daquela seção (ex: `ChangeUserDialog` em `participantes/widgets/`) |
+| `view/widgets/<componente>/` | Componente com vários arquivos dependentes (ex: `gallery/`, `menu/`) |
+
+---
+
+## 5. Test
+
+Suite de testes de unidade construída com `flutter_test` e `mockito`.
+
+### Regra de espelhamento
+
+A estrutura de `/test` deve ser um **espelho idêntico** de `/lib`:
+
+```
+# Arquivo original
+lib/view/acesso/screens/login_screen.dart
+
+# Arquivo de teste correspondente
+test/view/acesso/screens/login_screen_test.dart
+```
+
+:::tip[IDE]
+Clique com o botão direito sobre qualquer arquivo e selecione **"Go to tests"** — o ambiente gera o arquivo de teste automaticamente seguindo este padrão.
+:::
+
+### Infraestrutura de mocking (`/test/test-helper`)
+
+O arquivo `test-helper/mocks/mock.dart` centraliza a anotação `@GenerateMocks` do Mockito, evitando boilerplate espalhado pelos testes.
+
+**Para adicionar um novo mock:**
+
+1. Inclua a classe na lista da anotação:
+
+```dart
+@GenerateMocks([MinhaClasse, OutraClasse])
+```
+
+2. Execute o gerador de código:
+
+```bash
+flutter pub run build_runner build
+```
+
+---
+
+## Ponto de Entrada
+
+```
+lib/
+├── main.dart                   # Entry point da aplicação
+├── sentus_mobile.dart          # Widget raiz (MaterialApp, tema, rotas)
+└── firebase_options.dart       # Configuração gerada pelo FlutterFire CLI
+```
