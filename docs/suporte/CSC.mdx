@@ -1,0 +1,162 @@
+# CSC (Código de Segurança do Consumidor)
+
+O CSC é utilizado para gerar o QR Code do Cupom Fiscal (NFC-e)
+
+O código pode ser informado no cadastro do emitente.
+
+## Gerar CSC no SEFAZ
+
+1. Instalar o certificado digital no computador.
+2. Acessar o site do SEFAZ.
+3. Clicar em **Serviços à Empresa**.
+4. Selecionar **Mais Serviços**.
+5. Clicar na letra **N**.
+6. Selecionar **NFC-e (Nota Fiscal de Consumidor Eletrônica)**.
+7. Clicar em **Manutenção de CSC - Código de Segurança do Contribuinte [e-CAC]**.
+8. Selecionar **Login por Certificado Digital/Cartão Banrisul com chip**.
+9. Clicar em **Acessar por Certificado Digital (e-CPF / e-CNPJ)**.
+
+### Primeiro login
+
+10. No seletor informar:
+- Certificado: selecionar o certificado da empresa;
+- Arquivo: carregar o arquivo do certificado;
+- Senha: Informar a senha do certificado;
+- Clicar em **Autenticar**.
+
+### Segundo Login
+
+11. No seletor informar:
+   - Certificado: selecionar o certificado da empresa;
+   - Arquivo: **não é necessário selecionar novamente**;
+   - Senha: informar a senha do certificado;
+   - Clicar em **Autenticar**.
+
+12. Informar o CPF do responsável e clicar em **OK**.
+
+13. Acessar **Meus Serviços**, localizado na parte superior da página.
+
+14. Selecionar **Nota Fiscal de Consumidor Eletrônica**.
+
+  - No canto superior esquerdo existem duas setas de de navegação.
+  - Clique na seta para baixo até localzar a opção.
+  - Clique em **Nota Fiscal de Consumidor Eletrônica**.
+
+15. Selecionar:
+
+   **Manutenção de CSC - Codigo de Segurança do Contribuinte**
+
+16.Informar o CNPJ da empresa e clicar em **Consultar**.
+
+### Gerar Token
+
+Caso a empresa ainda não possua um token:
+
+1. Clicar em **Novo**.
+2. Após a geração, clicar na lupa.
+3. Copiar o token gerado.
+
+### Configurar no Sentus
+
+1. Acessar a tenant do cliente.
+2. Ir em:
+
+   **Cadastros > Emitentes**
+
+3. Editar o emitente.
+
+4. Informar:
+   - **ID Token:** 1
+   - **CSC:** Token gerado no SEFAZ
+
+5. Salvar.
+
+---
+
+# Desmembramento de Pedido
+
+## Passo a Passo
+
+1. Selecionar o pedido.
+2. Clicar em **Opções**.
+3. Informar os itens que serão desmembrados.
+4. Confirmar a operação.
+
+---
+
+# Cadastrar Operação de Devolução
+
+## Devolução de Mercadoria Comprada
+
+### 1. Cadastrar a Operação Tributária
+
+informar:
+
+- Nome: **Devolução de Compra**
+- Tipo: **Saída**
+- Finalidade: **Devolução**
+
+### 2. Cadastrar Informações Adicionais
+
+Informar:
+
+- Devolução de Compra
+- ICMS
+- Devolução referente à nota fiscal **[DOC_REF]**
+
+### 3. Cadastrar Matriz Tributária
+
+Configurar:
+
+- CST 500 - Cobrando anteriormente por Substituição Tributária
+  
+---
+
+# Como Remover o Aviso de Uso Profissional do AnyDesk
+
+## Passo a Passo
+
+1. Pressione:
+
+   **Windows + R**
+
+2. Digite:
+
+   %appdata%
+
+3. Abra a pasta:
+
+   **AnyDesk**
+
+4. Exclua todos os arquivos e pastas, exceto:
+   - thumbnails
+   - user.conf
+
+5. Utilize **Shift + Delete** para exclusão permanente.
+
+### Desinstalar o Programa
+
+1. Acesse:
+
+  **Painel de Controle > Programas > Desinstalar um Programa**
+
+2. Localizw o AnyDesk.
+3. Clique com o botão direito.
+4. Selecione **Desinstalar**.
+
+### Remover Arquivos restantes
+
+1. Abra o Explorador de Arquivos.
+
+2. Acesse:
+
+C:\Program Files (x86)
+
+3. Exclua completamente a pasta:
+
+**AnyDesk**
+
+### Oberservação
+
+Após alguns usos, o aviso poderá retornar e será necessário repetir o procedimento.
+
