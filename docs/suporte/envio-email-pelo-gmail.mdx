@@ -1,0 +1,57 @@
+# Envio de Email pelo Gmail
+
+Quando a conta do Gmail está configurada com autenticação em duas etapas, não é possível utilizar a senha da conta para realizar o envio de e-mails.
+
+Ao tentar utilizar a senha da conta, poderá ser exibida a seguinte mensagem de erro:
+
+```text
+Application-specific password required. Learn more at 534 5.7.9
+https://support.google.com/mail/?p=InvalidSecondFactor
+```
+
+Para realizar o envio de e-mails, é necessário gerar uma **senha de aplicativo** na conta Google.
+
+Acesse o link:
+https://support.google.com/mail/?p=InvalidSecondFactor
+
+É necessário entrar na conta Google do cliente para gerar essa senha. Caso a autenticação em duas etapas esteja habilitada, será necessário informar o código de verificação.
+
+Na opção **Selecionar app**, escolha **Outro (nome personalizado)** e informe **SENTUS**.
+
+Após gerar a senha, utilize-a na configuração de envio de e-mails do Sentus.
+
+## Configuração de E-mail
+
+```properties
+mail.transport.protocol=smtp
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=465
+mail.debug=false
+mail.smtp.debug=false
+
+mail.smtp.ssl.enable=true
+mail.smtp.starttls.enable=true
+mail.imap.starttls.enable=false
+
+java.security.debug=certpath
+javax.net.debug=trustmanager
+
+mail.smtp.socketFactory.port=465
+mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+mail.smtp.socketFactory.fallback=false
+mail.mime.charset=ISO-8859-1
+```
+
+## Configuração para Autenticação de E-mail
+
+```properties
+mail.smtp.auth=true
+mail.smtp.auth.username=minhaconta@gmail.com
+mail.smtp.auth.password=senha_de_aplicativo
+```
+
+:::warning[Importante]
+
+Não utilize a senha da conta Google. Utilize a senha de aplicativo gerada na conta.
+
+:::
