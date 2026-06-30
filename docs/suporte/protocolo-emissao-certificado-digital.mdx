@@ -1,0 +1,91 @@
+# Protocolo para Agendamento de Emissão de Certificados Digitais
+
+![Protocolo para emissão de certificados](/img/protocolo-certificados.png)
+
+---
+
+## Verificar disponibilidade
+
+Verifique a disponibilidade do Guilherme.
+
+---
+
+## Certificado para CPF
+
+Se o certificado for para **CPF**, pule para a etapa **4**.
+
+---
+
+## Certificado para CNPJ
+
+Consulte o CNPJ para descobrir o responsável na Receita Federal.
+
+Acesse:
+
+https://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp
+
+1. Informe o **CNPJ**.
+2. Clique em **Consultar QSA**.
+3. Em aproximadamente **99% dos casos**, o **primeiro nome da lista** é o responsável legal e deverá comparecer para realizar a emissão do certificado.
+
+---
+
+## Pagamento antecipado (opcional)
+
+Ofereça ao cliente a opção de pagar o boleto antecipadamente.
+
+Caso aceite:
+
+### Acessar o sistema
+
+Acesse:
+
+https://gestaoar.com.br/ARPlanoDigital/Parceiro/VendasParceirosSafeweb
+
+**Usuário:** `guilherme.opuscd@gmail.com`
+
+**Senha:** mesma senha do usuário **root** do Sentus.
+
+### Lançar a venda
+
+1. Clique em **Vendas → Lançar Vendas → Nova Venda**.
+2. No campo **Cliente**, pesquise pelo nome ou CPF/CNPJ.
+3. Caso o cliente já exista, prossiga para o lançamento da venda.
+
+### Caso o cliente não exista
+
+1. Clique em **Novo Cliente**.
+2. Informe o **CNPJ** e clique em **Ler CNPJ RFB**, ou informe o **CPF**.
+3. Preencha os dados do cadastro.
+
+:::warning
+
+Verifique principalmente os campos **E-mail** e **Inscrição Estadual**.
+
+:::
+
+### Finalizar a venda
+
+- Pesquisar o cliente.
+- Informar o contador (caso não encontre, deixar em branco).
+- Informar o tipo de certificado.
+- Selecionar **Boleto** como forma de pagamento.
+- Informar a data de vencimento.
+
+> O vencimento pode ser a data agendada para emissão do certificado, porém o cliente deve comparecer com o boleto já pago.
+
+- Salvar a venda.
+- O boleto será enviado para o e-mail cadastrado.
+- Caso seja necessário enviar por outro meio, clique no ícone **Código de Barras** (dados da fatura).
+
+---
+
+## Pagamento no momento da emissão
+
+Se o cliente optar por pagar no momento do atendimento:
+
+- Registrar no **Trello** que o pagamento será realizado na hora;
+
+ou
+
+- Lançar a venda com vencimento para a **segunda sexta-feira seguinte**.
