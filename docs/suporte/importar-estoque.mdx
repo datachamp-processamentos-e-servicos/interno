@@ -1,0 +1,27 @@
+# Importar Estoques - Entrada / Saída
+
+Este procedimento refere-se à opção:
+
+```text
+Administrativo → Configurações  → Importar CSV → Opções → Importar Estoques - Entrada / Saída
+```
+
+---
+
+## Estrutura do arquivo CSV
+
+O arquivo deve seguir a ordem de colunas abaixo:
+
+| Índice | Campo | Obrigatório |
+|:------:|-------|:-----------:|
+| 00 | Item ID | Sim |
+| 01 | Referência | Sim |
+| 02 | Quantidade | Sim |
+| 03 | Valor Unitário | Sim |
+| 04 | Depósito ID | Sim |
+
+:::info[Importante]
+
+A ordem das colunas deve ser mantida exatamente conforme especificado acima. Alterações na sequência podem impedir a importação correta do arquivo.
+
+:::
