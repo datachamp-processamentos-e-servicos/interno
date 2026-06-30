@@ -1,0 +1,65 @@
+# Configurar Gmail Sentus
+
+Este procedimento é utilizado para configurar os dados de envio de e-mail do cliente.
+
+---
+
+## Configuração do Gmail
+
+Acesse:
+
+```text
+Perfil/Foto → Gerenciar sua Conta do Google → Segurança
+```
+
+Ative a opção **Acesso a apps menos seguros**, quando disponível.
+
+:::warning
+
+Em contas Google mais recentes, essa opção pode não estar disponível. Nesses casos, utilize uma **Senha de App** ou o método de autenticação definido pela conta.
+
+:::
+
+---
+
+## Configuração do servidor SMTP
+
+Configure os seguintes parâmetros:
+
+```properties
+mail.transport.protocol=smtp
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=465
+
+mail.debug=false
+mail.smtp.debug=false
+
+mail.smtp.ssl.enable=true
+mail.smtp.starttls.enable=true
+mail.imap.starttls.enable=false
+
+java.security.debug=certpath
+javax.net.debug=trustmanager
+
+mail.smtp.socketFactory.port=465
+mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+mail.smtp.socketFactory.fallback=false
+
+mail.mime.charset=ISO-8859-1
+```
+
+---
+
+## Configuração de autenticação
+
+```properties
+mail.smtp.auth=true
+mail.smtp.auth.username=contato.ardesentupidora@gmail.com
+mail.smtp.auth.password=senha
+```
+
+:::info
+
+Substitua **mail.smtp.auth.username** e **mail.smtp.auth.password** pelos dados da conta de e-mail do cliente.
+
+:::
