@@ -1,0 +1,52 @@
+# Consultar participante via SQL
+
+Este procedimento permite localizar um participante utilizando o **CPF** ou **CNPJ**.
+
+---
+
+## Caminho
+
+Acesse:
+
+```text
+Master → Administrativo →   Tenants → Opções → Executar SQL
+```
+
+---
+
+## Consulta
+
+Substitua **`CPF_OU_CNPJ`** pelo CPF ou CNPJ desejado ( mantendo as aspas simples) e execute a consulta abaixo:
+
+```sql
+
+SELECT
+    id,
+    codigo,
+    nome,
+    cnpj_cpf,
+    status_cli,
+    status_emit
+FROM participantes
+WHERE cnph_cpf = ' CPF_OU_CNPJ';
+```
+
+:::info[Resultado Esperado]
+
+A consulta retornará as seguintes informações do participante:
+
+- ID
+- Código
+- Nome
+- CPF/CNPJ
+- Status do cliente
+- Status do emitente
+
+:::
+
+:::warning[Atenção]
+
+O CPF ou CNPJ deve ser informado exatamente como está cadastrado na base de dados, incluindo qualquer formatação existente.
+
+:::
+=-
