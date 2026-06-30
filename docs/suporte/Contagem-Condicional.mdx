@@ -1,0 +1,109 @@
+# Inventário por Contagem de Condicionais
+
+Quando o cliente utiliza **condicionais** para realizar a contagem de estoque, é possível gerar uma planilha para importação do inventário.
+
+---
+
+## Gerar a planilha
+
+Acesse:
+
+```text
+Administrativo → Configurações → Relatórios Genéricos
+```
+
+Execute a consulta abaixo, ajustando os **IDs inicial e final** dos condicionais.
+
+```sql
+SELECT
+it.id,
+it.referencia,
+it.nome,
+und.abreviatura,
+sum(itc.quantidade) as quantidade,
+it.preco as unitario,
+sum(itc.valor_total) as total,
+it.preco_custo as custo
+FROM ped_condicionais_itens itc, itens it, unidades und
+WHERE (itc.condicional_id > 70 AND itc.condicional_id < 200)
+AND it.id = itc.item_id
+AND und.id = itc.unidade_com_id
+GROUP BY itc.item_id
+ORDER BY it.referencia;
+```
+
+Após executar a consulta, exporte o resultado no formato **XLS**.
+
+---
+
+## Importar o inventário
+
+Acesse:
+
+```text
+Administrativo → Importador
+```
+
+Configure:
+
+- **Tipo:** Conferência de Estoque - Gerando Inventário
+- **Data do Inventário**
+- **Depósito**
+
+Em seguida:
+
+1. Faça o upload da planilha.
+2. Clique em **Upload**.
+3. Verifique os itens importados.
+4. Clique em **Salvar**.
+
+O sistema irá gerar:
+
+- Um lançamento de inventário na data informada.
+- Um lançamento de conferência de estoque (quando necessário), ajustando o estoque conforme o inventário.
+
+---
+
+## Conferência de itens
+
+Caso seja necessário conferir os itens individualmente, acesse:
+
+```text
+Administrativo → Configurações → Relatórios Genéricos
+```
+
+Execute a consulta abaixo, ajustando os **IDs inicial e final** dos condicionais.
+
+```sql
+SELECT
+it.id,
+it.referencia,
+it.nome,
+und.abreviatura,
+itc.quantidade as quantidade,
+it.preco as unitario,
+itc.valor_total as total,
+it.preco_custo as custo,
+itc.inclusao,
+itc.condicional_id
+FROM ped_condicionais_itens itc, itens it, unidades und
+WHERE (itc.condicional_id > 70 AND itc.condicional_id < 200)
+AND it.id = itc.item_id
+AND und.id = itc.unidade_com_id
+ORDER BY it.referencia, itc.id;
+```
+
+Essa consulta:
+
+- Não agrupa os itens.
+- Exibe a data de inclusão.
+- Exibe o ID do condicional.
+
+:::info
+
+- Para itens duplicados, informe **0** no campo **Quantidade**. O sistema desconsiderará esses registros durante a importação.
+- A planilha gerada por essa consulta também pode ser utilizada na importação.
+- As colunas excedentes serão ignoradas pelo importador.
+- O campo **Unitário** não é considerado durante a importação.
+
+:::
