@@ -1,18 +1,37 @@
-# Nova Tenant
+# Criar usuário no Sentus Master
 
-## Cadastro de Usuários Master
+No **Sentus Master**, acesse:
 
-No Sentus Master:
-
-```
+```text
 Administrativo → Master User → Novo
 ```
 
-## Tenants Obrigatórias 
+## Usuários
 
-Devem ser criadas as seguintes contas:
+Devem ser criados os seguintes usuários:
 
 | Tipo | Login | Senha |
-|--------|--------|--------|
-| Cliente | admin@cliente | 123465 |
-| Suporte | root@cliente | @tu4l1t4 |
+|------|-------|-------|
+| Cliente | `admin@cliente` | `123465` |
+| Suporte | `root@cliente` | `@tu4l1t4` |
+
+## Nome
+
+No campo **Nome**, informe o tipo de usuário seguido do nome da empresa.
+
+Exemplos:
+
+- Admin Datachamp
+- Root Datachamp
+
+### Tenant Parceria
+
+Quando a empresa for **Santiago**, criar também o usuário:
+
+- **Parceria** (papel **root**)
+- Senha: `@tu4l1t4`
+
+## Configurações
+
+- Selecionar a **tenant** correspondente ao cliente.
+- Definir **Tempo da Sessão** como **0**.
