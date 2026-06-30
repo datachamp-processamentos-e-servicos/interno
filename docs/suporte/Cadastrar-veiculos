@@ -1,0 +1,15 @@
+# Cadastro de veículo para transportadoras
+
+Para transportadoras que **não possuem a opção Veículos**, o cadastro pode ser realizado diretamente durante a emissão do CT-e.
+
+O veículo poderá ser cadastrado em:
+
+```text
+CT-e → Rodoviário
+```
+
+:::info
+
+A forma de cadastro do veículo é indiferente. Caso a transportadora não possua o módulo **Veículos**, utilize o cadastro disponível na aba **Rodoviário** durante a emissão do CT-e.
+
+:::
