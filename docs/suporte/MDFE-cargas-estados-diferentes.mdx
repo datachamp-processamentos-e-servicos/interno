@@ -1,0 +1,31 @@
+#MDF-e com Cargas em Estados Diferentes
+
+Quando houver entregas em **mais de um estado**, é necessário emitir **um MDF-e para cada estado de descarregamento**.
+
+Cada MDF-e deve conter apenas os **CT-es** das mercadorias destinadas ao respectivo estado.
+
+## Como emitir
+
+1. Separe os **CT-es** de acordo com o estado de descarregamento.
+
+2. Emita um **MDF-e** para cada estado onde haverá entrega.
+
+3. Vincule ao MDF-e apenas os CT-es correspondentes ao estado de destino.
+
+4. Ao concluir o descarregamento em um estado, realize o **encerramento do MDF-e** referente a esse estado.
+
+5. O veículo poderá seguir viagem utilizando o MDF-e do próximo estado de descarregamento.
+
+6. Repita esse processo até que todas as entregas sejam concluídas.
+
+:::info[Importante]
+
+Não é possível emitir um único MDF-e para mercadorias destinadas a diferentes estados de descarregamento. Cada estado de destino deve possuir seu próprio manifesto.
+
+:::
+
+:::tip[Observação]
+
+A SEFAZ permite a emissão de múltiplos MDF-es para o mesmo veículo, desde que cada manifesto seja encerrado no respectivo estado de descarregamento.
+
+:::
