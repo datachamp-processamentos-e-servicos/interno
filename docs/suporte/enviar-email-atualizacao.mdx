@@ -1,61 +1,93 @@
-# Como enviar o e-mail
+# Envio de e-mail e atualização do PDF
+
+Este procedimento descreve o envio do e-mail de atualização aos clientes e a publicação do PDF de alterações no Sentus.
 
 ---
 
-## Exportar os destinatários
+## Envio do e-mail
+
+### Exportar os destinatários
 
 1. Acesse **Tenant Master → Administrativo → Tenants**.
 2. Clique em **Opções → Exportar E-mail**.
 3. Abra o arquivo utilizando o **WordPad**.
-4. Copie todos os e-mails.
+4. Copie todos os endereços de e-mail.
 
-## Envio
+### Configurar os destinatários
 
-- **PC do Guilherme:** utilize o campo **CCo**.
-- **Demais computadores:** utilize o campo **Bcc**.
+| Equipamento | Campo |
+|-------------|-------|
+| PC do Guilherme | **CCo** |
+| Demais computadores | **Bcc** |
 
-:::warning
+:::warning[Destinatário obrigatório]
 
-O campo **Para (To)** deve conter obrigatoriamente:
+O campo **Para** deve conter obrigatoriamente:
 
 `datachamp@datachamp.com.br`
 
-Caso contrário, o e-mail poderá ser enviado com um código incorreto.
+Caso contrário, o e-mail poderá ser enviado com um destinatário inválido.
 
 :::
 
-## Corpo do e-mail
+### Corpo do e-mail
 
-Copie o conteúdo localizado em:
+Copie o conteúdo disponível em:
 
-`G:\_Sentus\Email de atualizações do Sentus`
+```text
+G:\_Sentus\Email de atualizações do Sentus
+```
 
-e cole no corpo do e-mail.
+Cole o texto no corpo da mensagem.
 
 ---
 
-# Atualizar o PDF
+## Atualização do PDF
 
-## Conectar ao servidor
+### Conectar ao servidor
 
-Abra o **WinSCPPortable**.
+Abra o **WinSCPPortable** disponível no computador do Guilherme.
 
-Conecte-se em:
+Conecte-se utilizando:
 
-`root@datachamp_ajuda`
+```text
+root@datachamp_ajuda
+```
 
-Acesse o diretório:
+### Localizar a pasta
 
-`/var/www/datachamp.com.br/html/ajuda`
+Navegue até:
 
-## Upload
+```text
+/var/www/datachamp.com.br/html/ajuda
+```
 
-Envie o novo PDF utilizando obrigatoriamente o nome:
+### Publicar o arquivo
 
-`changelog.pdf`
+Copie o novo PDF para esta pasta.
 
-:::info
+:::danger[Nome do arquivo]
 
-Após o upload, abra o Sentus e confirme que o novo documento está sendo exibido corretamente.
+O PDF deve possuir exatamente o seguinte nome:
+
+```text
+changelog.pdf
+```
+
+Qualquer outro nome impedirá a atualização do documento no sistema.
+
+:::
+
+### Validação
+
+Após concluir o upload:
+
+1. Abra o Sentus.
+2. Acesse a ajuda.
+3. Confirme que o PDF exibido corresponde à nova versão.
+
+:::tip[Boa prática]
+
+Sempre valide o documento publicado antes de finalizar o procedimento.
 
 :::
