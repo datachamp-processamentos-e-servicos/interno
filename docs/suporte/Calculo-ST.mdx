@@ -1,0 +1,93 @@
+# Cálculo do ICMS ST
+
+## 1. Calcular a Base do ICMS Inter ou ICMS Próprio
+
+**Fórmula:**
+
+```text
+Base do ICMS Inter = Valor do Produto + Frete + Seguro + Outras Despesas Acessórias - Descontos
+```
+
+**Exemplo:**
+
+```text
+Base do ICMS Inter = 100,00 + 0,00 + 0,00 + 0,00 - 0,00
+Base do ICMS Inter = 100,00
+```
+
+---
+
+## 2. Calcular o Valor do ICMS Inter ou ICMS Próprio
+
+**Fórmula:**
+
+```text
+Valor do ICMS Inter = Base do ICMS Inter × (Alíquota ICMS Inter / 100)
+```
+
+**Exemplo:**
+
+```text
+Valor do ICMS Inter = 100,00 × (12,00 / 100)
+Valor do ICMS Inter = 12,00
+```
+
+---
+
+## 3. Calcular a Base do ICMS ST
+
+**Fórmula:**
+
+```text
+Base do ICMS ST = (Valor do Produto + IPI + Frete + Seguro + Outras Despesas Acessórias - Descontos) × (1 + (%MVA / 100))
+```
+
+**Exemplo:**
+
+```text
+Base do ICMS ST = (100,00 + 0,00 + 0,00 + 0,00 + 0,00 - 0,00) × (1 + (43,03 / 100))
+Base do ICMS ST = 100,00 × 1,4303
+Base do ICMS ST = 143,03
+```
+
+---
+
+## 4. Calcular o Valor do ICMS ST
+
+**Fórmula:**
+
+```text
+Valor do ICMS ST = (Base do ICMS ST × (Alíquota ICMS Intra / 100)) - Valor do ICMS Inter
+```
+
+**Exemplo:**
+
+```text
+Valor do ICMS ST = (143,03 × (27,00 / 100)) - 12,00
+Valor do ICMS ST = 38,62 - 12,00
+Valor do ICMS ST = 26,62
+```
+
+---
+
+## 5. Aplicar o FCP
+
+**Fórmula:**
+
+```text
+Valor do FCP = Base do ICMS ST × Alíquota do FCP
+```
+
+**Exemplo:**
+
+```text
+Valor do FCP = 143,03 × 2%
+Valor do FCP = 2,86
+```
+
+**Valor final:**
+
+```text
+Valor do ICMS ST com FCP = 26,62 + 2,86
+Valor do ICMS ST com FCP = 29,48
+```
