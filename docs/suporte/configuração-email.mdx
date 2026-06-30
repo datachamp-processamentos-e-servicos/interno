@@ -1,0 +1,48 @@
+# Configurar envio de e-mail Datachamp
+
+Este procedimento é utilizado para configurar o envio de e-mails utilizando a conta **NoReply** da Datachamp.
+
+---
+
+## Dados da conta
+
+| Campo | Valor |
+|-------|-------|
+| **Nome** | Conta Datachamp@noreply |
+| **Usuário** | noreply@datachamp.com.br |
+| **Senha** | D4t4ch4mp$#@ |
+
+---
+
+## Configuração do servidor SMTP
+
+```properties
+mail.transport.protocol=smtp
+mail.smtp.host=mail.datachamp.com.br
+mail.smtp.port=587
+
+mail.debug=false
+mail.smtp.debug=false
+
+mail.smtp.ssl.trust=*
+
+mail.smtp.ssl.enable=false
+mail.smtp.starttls.enable=false
+mail.imap.starttls.enable=false
+```
+
+---
+
+## Configuração de autenticação
+
+```properties
+mail.smtp.auth=true
+mail.smtp.auth.username=noreply@datachamp.com.br
+mail.smtp.auth.password=senha
+```
+
+:::info
+
+Substitua o valor de **mail.smtp.auth.password** pela senha da conta de e-mail configurada.
+
+:::
