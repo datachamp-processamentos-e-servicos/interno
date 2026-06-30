@@ -1,0 +1,45 @@
+ # Como enviar o e-mail de atualização
+
+1. Acesse **Tenant Master → Administrativo → Tenants**.
+2. Clique em **Opções → Exportar E-mail**.
+3. Abra o arquivo exportado com o **WordPad**.
+4. Copie todos os e-mails e cole:
+   - **PC do Guilherme:** campo **CCo**.
+   - **Demais computadores:** campo **Bcc**.
+5. No campo **Para (To)**, adicione obrigatoriamente:
+   ```
+   datachamp@datachamp.com.br
+   ```
+   > [!IMPORTANT]
+   > Caso o campo **To** fique vazio, o e-mail poderá ser enviado com um código estranho no destinatário.
+6. Abra a pasta:
+   ```
+   G:\_Sentus\Email de atualizações do Sentus
+   ```
+7. Copie o conteúdo de **Novidades e Melhorias** e cole no corpo do e-mail.
+8. Revise as informações e envie.
+
+---
+
+> [!TIP]
+> ## 📄 Atualizando o PDF no Sentus
+
+1. Abra o **WinSCPPortable** (atalho disponível no computador do Guilherme).
+2. Clique em **Nova Sessão**.
+3. Conecte-se utilizando:
+   ```
+   root@datachamp_ajuda
+   ```
+4. No painel direito, navegue até:
+   ```
+   /var/www/datachamp.com.br/html/ajuda
+   ```
+5. Copie o novo PDF para essa pasta.
+6. O arquivo **deve obrigatoriamente** possuir o nome:
+   ```
+   changelog.pdf
+   ```
+7. Após o upload, abra o Sentus e confirme se o PDF atualizado está sendo exibido corretamente.
+
+> [!NOTE]
+> Sempre valide a versão publicada antes de finalizar o processo para garantir que o upload foi realizado com sucesso.
