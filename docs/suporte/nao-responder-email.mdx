@@ -1,0 +1,36 @@
+---
+sidebar_position: 55
+---
+
+# Não Responder Email
+
+:::info[Observação]
+
+Este procedimento refere-se ao seguinte caminho:
+
+**Administrativo → E-mails → Configuração**
+
+:::
+
+## Exibir mensagem "Não responda"
+
+Define se a mensagem **"Não responda este e-mail"** será exibida no corpo dos e-mails enviados.
+
+```properties
+mail.msg.nao.responda=true
+```
+
+- **true**: adiciona a mensagem ao corpo do e-mail.
+- **false**: não adiciona a mensagem.
+
+## Notificação de entrega e confirmação de leitura
+
+Para habilitar a solicitação de confirmação de entrega e leitura, utilize as seguintes configurações:
+
+```properties
+mail.smtp.dsn.notify=SUCCESS,FAILURE
+mail.confirmacaoleitura=true
+```
+
+- `mail.smtp.dsn.notify`: solicita notificação de entrega em caso de **sucesso** ou **falha**.
+- `mail.confirmacaoleitura`: solicita confirmação de leitura do e-mail.
