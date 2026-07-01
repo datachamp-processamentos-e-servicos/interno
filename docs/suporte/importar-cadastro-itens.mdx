@@ -1,0 +1,50 @@
+---
+sidebar_position: 43
+---
+
+# Importar Cadastros de Itens - SENTUS
+
+:::info[Observação]
+
+Este padrão refere-se ao seguinte caminho:
+
+**Administrativo → Importador → Tipo de Arquivo → Itens**
+
+:::
+
+## Estrutura do arquivo
+
+```text
+00-ID (Pode ser em branco)
+01-Referência *
+02-Nome *
+03-Unidade [ID ou Descrição] *
+04-Preço (pode ser zero) *
+05-Preço de Custo (pode ser zero) *
+06-NCM *
+07-CEST
+08-CST ICMS
+09-EAN (Código de Barras)
+10-Marca
+11-Peso Bruto
+12-Peso Líquido
+13-Cubagem
+14-Origem da Mercadoria
+15-Tipo de Item
+16-Grupo do Item [ID] *
+17-Subgrupo do Item [ID]
+18-Grupo Tributário [ID] *
+19-Observação
+20-Especificação
+21-Informação Adicional
+22-Tags
+23-Depósito [ID]
+24-Depósito - Quantidade
+25-Depósito - Valor
+```
+
+:::tip[Importante]
+
+Os campos marcados com **(*)** são obrigatórios.
+
+:::
