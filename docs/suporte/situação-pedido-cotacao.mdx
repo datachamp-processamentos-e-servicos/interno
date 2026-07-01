@@ -1,0 +1,26 @@
+---
+sidebar_position: 77
+---
+
+# Situação dos Pedidos/Cotação
+
+A tabela abaixo apresenta as situações disponíveis para **Cotações** e **Pedidos**, suas ações e as transições permitidas.
+
+| Situação | Ação | Cotação | Pedido | Situações Permitidas |
+|----------|------|:-------:|:------:|----------------------|
+| Novo | Não permite faturar. | ✅ | ✅ | Análise, Aprovado, Autorizado, Não Aprovado, Inativo, Devolvido, Programado, Em Produção e Produzido. |
+| Análise | Não permite faturar. Pedidos/cotações de clientes com restrição permanecem nessa situação. | ✅ | ✅ | Aprovado, Autorizado, Não Aprovado e Inativo. |
+| Aprovado | Permite faturar (exceto na cotação). | ✅ | ✅ | Análise, Autorizado, Não Aprovado, Encerrado, Inativo, Devolvido, Programado, Em Produção e Produzido. |
+| Autorizado | No pedido possui a mesma função de **Aprovado**. Na cotação, gera o pedido correspondente, podendo preservar ou não a cotação. | ✅ | ✅ | Análise, Não Aprovado, Encerrado, Inativo, Devolvido, Programado, Em Produção e Produzido. |
+| Não Aprovado | Apenas controle de situação, sem executar ações. | ✅ | ✅ | Análise, Aprovado, Autorizado e Inativo. |
+| Faturado | Situação após o faturamento total. Não pode ser alterada, exceto com o cancelamento da nota fiscal. | ❌ | ✅ | Nenhuma (somente cancelando a nota, retornando para **Aprovado**). |
+| Faturado Parcial | Situação após faturamento parcial. Permite faturar o saldo posteriormente. | ❌ | ✅ | Faturado/Encerrado ou Faturado. |
+| Encerrado | Finaliza o pedido. Gera títulos a receber e movimentação de estoque. Não permite alteração. | ❌ | ✅ | Inativo (cancelamento da venda, desfazendo os lançamentos de estoque, se houver). |
+| Faturado/Encerrado | Utilizado quando um pedido foi faturado parcialmente e o saldo restante é encerrado. | ❌ | ✅ | Nenhuma (somente cancelando a nota, retornando para **Aprovado**). |
+| Inativo | Situação de cancelamento. | ✅ | ✅ | Novo. |
+
+:::info[Observação]
+
+As opções de mudança de situação variam conforme a situação atual do documento e o tipo (**Cotação** ou **Pedido**).
+
+:::
