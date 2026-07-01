@@ -1,0 +1,27 @@
+# Importação de estoque
+:::info[Observação]
+
+Este padrão refere-se ao seguinte caminho:
+
+**Administrativo → Importador → Tipo de Arquivo → Estoque - Conferência Gerando Lançamentos - XLS**
+
+:::
+
+## Estrutura do arquivo
+
+```text
+00-ID (Opcional. Se não informado, a busca será realizada pela referência)
+01-Referência
+02-Nome (Opcional)
+03-Unidade (Opcional)
+04-Quantidade (Obrigatório para Conferência de Estoque - Gerando Inventário)
+05-Valor Unitário (Opcional)
+06-Valor Total (Obrigatório para Conferência de Estoque - Gerando Inventário)
+07-Preço (Obrigatório para Preço de Custo ou Preço Mínimo com Valor Desejado)
+```
+
+:::tip[Importante]
+
+Todas as colunas devem estar presentes no arquivo, porém apenas os campos indicados acima são obrigatórios conforme o tipo de conferência realizada.
+
+:::
