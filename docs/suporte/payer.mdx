@@ -12,7 +12,43 @@ sidebar_position: 103
 2. Verifique se existe uma nova atualização disponível para o **DT.Shop**.
 3. Caso exista uma versão mais recente, atualize o DT.Shop antes de continuar.
 
-### 2. Localizar os dados do cliente
+### 2. Configurar energia do Windows
+
+Antes de instalar o PAYER, realize as configurações de energia do computador.
+
+1. Acesse **Opções de Energia** do Windows.
+2. Selecione o plano **Alto Desempenho**.
+3. Configure:
+   - **Desligar vídeo:** Nunca
+   - **Suspender atividade do computador:** Nunca
+4. Acesse as **Configurações avançadas de energia**.
+5. Configure as opções indicadas no passo a passo do PAYER:
+   - Mantenha a configuração indicada como **0**.
+   - Desative a opção de economia de energia indicada.
+6. Clique em **Aplicar** e salve as alterações.
+
+### 3. Configurar o Gerenciador de Dispositivos
+
+#### Adaptadores de rede
+
+1. Abra o **Gerenciador de Dispositivos** do Windows.
+2. Acesse **Adaptadores de rede**.
+3. Verifique todos os adaptadores que possuem a aba **Gerenciamento de Energia**.
+4. Desative a opção que permite ao computador desligar o dispositivo para economizar energia.
+5. Clique em **OK**.
+6. Repita o procedimento em todos os adaptadores que possuírem essa opção.
+
+#### Controladores USB
+
+1. Ainda no **Gerenciador de Dispositivos**, acesse **Controladores USB**.
+2. Verifique os dispositivos que possuem a aba **Gerenciamento de Energia**.
+3. Desative a opção que permite ao computador desligar o dispositivo para economizar energia.
+4. Clique em **OK**.
+5. Repita o procedimento nos demais controladores que apresentarem essa opção.
+
+---
+
+### 4. Localizar os dados do cliente
 
 1. Acesse o cadastro de **Participantes**.
 2. Localize o participante referente ao cliente.
@@ -27,7 +63,7 @@ Sempre que possível, copie os dados diretamente do cadastro de **Participantes*
 
 :::
 
-### 3. Instalar o PAYER
+### 5. Instalar o PAYER
 
 Também é possível baixar o instalador diretamente pelo link abaixo:
 
@@ -37,7 +73,17 @@ Normalmente, ao acessar o endereço, o download será iniciado automaticamente.
 
 Caso o download não seja iniciado, verifique se o navegador bloqueou o download ou a abertura da página.
 
-Caso não funcione:
+:::warning[Atenção]
+
+Verifique se o antivírus está bloqueando ou removendo arquivos do PAYER.
+
+O **Kaspersky** pode apresentar incompatibilidades com a aplicação.
+
+:::
+
+Após instalar o PAYER, execute também o **Driver** disponibilizado junto ao processo de instalação.
+
+Caso o download direto não funcione:
 
 1. Acesse [Downloads DataChamp](https://www.datachamp.com.br/downloads/).
 2. Abra a pasta **DTshop/**.
@@ -65,20 +111,111 @@ Após instalar o PAYER:
 
 ---
 
-## Configuração no PAYER
+## Configuração inicial no PAYER
 
-1. Abra o **PAYER**.
-2. Informe o **CNPJ** do cliente.
-3. Informe o **token** do PAYER.
-4. O CNPJ deve ser obtido no cadastro de **Participantes**.
-5. O token está localizado na aba **Observação** do participante.
-6. Continue a configuração seguindo o **passo a passo do PDF**.
+Ao finalizar a instalação, o PAYER solicitará um login.
+
+Neste primeiro acesso, utilize seu próprio acesso para realizar a configuração inicial.
+
+Após realizar o login:
+
+1. Informe o **CNPJ do cliente**.
+2. Informe o **token do terminal** que será instalado.
+3. O CNPJ deve ser obtido no cadastro de **Participantes**.
+4. O token está localizado na aba **Observação** do participante.
 
 :::tip[Importante]
 
-Confirme se o CNPJ e o token pertencem ao mesmo participante antes de finalizar a configuração.
+O token corresponde ao terminal que será instalado.
+
+Sempre que possível, confira o **ID do terminal** com o número real do caixa.
+
+Por exemplo, se o cliente possuir três caixas numerados como 1, 2 e 3, configure os tokens seguindo essa mesma numeração.
 
 :::
+
+---
+
+## Configuração do PinPad
+
+Após realizar a configuração inicial do PAYER:
+
+1. Conecte o **PinPad** ao computador.
+2. Preferencialmente, conecte o equipamento em uma porta USB localizada na parte traseira do computador, quando não for notebook.
+3. Acesse as configurações do PinPad no PAYER.
+4. Desative a opção **AUTO USB**.
+5. Clique em **Auto Detectar PinPad**.
+6. Verifique se o PinPad foi localizado corretamente.
+7. Após localizar o equipamento, habilite novamente a opção **AUTO USB**.
+8. Clique em **Atualizar**.
+
+:::tip[Importante]
+
+A detecção do PinPad deve ser realizada antes de continuar com as demais configurações do PAYER.
+
+:::
+
+---
+
+## Configuração da impressora
+
+Após configurar o PinPad:
+
+1. Acesse a configuração de **Impressora** no PAYER.
+2. Selecione a impressora utilizada pelo cliente.
+3. Realize um **teste de impressão**.
+4. Confirme se a impressão foi realizada corretamente.
+5. Salve as configurações.
+
+---
+
+## Carregar as configurações do cliente
+
+Após configurar o PinPad e a impressora:
+
+1. Volte ao menu principal do PAYER.
+2. Acesse **Meus Serviços**.
+3. Selecione **Pagamento Avulso**.
+4. Informe um valor para a transação.
+5. Selecione a opção de **Débito**.
+6. Aguarde o download da **carga de tabelas**.
+
+A carga de tabelas é responsável por carregar as configurações do cliente no terminal.
+
+:::tip[Importante]
+
+Não é necessário concluir o pagamento.
+
+Após a carga de tabelas ser concluída e o sistema solicitar para inserir, passar ou aproximar o cartão, a transação pode ser cancelada.
+
+Caso o cliente utilize **PIX pelo PAYER**, realize também uma tentativa de transação PIX.
+
+:::
+
+---
+
+## Login do cliente no PAYER
+
+Após concluir a configuração do PAYER, configure o acesso do cliente.
+
+Pergunte ao cliente se ele utilizará o **e-mail já cadastrado** ou um **novo e-mail**.
+
+### Caso utilize o e-mail já cadastrado
+
+1. Na tela de login, clique em **Esqueci minha senha**.
+2. Realize o processo para criação de uma nova senha.
+3. Faça o login com os dados do cliente.
+
+### Caso utilize um novo e-mail
+
+1. Na tela de login, clique em **Nova conta? Crie aqui**.
+2. Realize o cadastro da nova conta.
+3. Faça o login com os novos dados.
+
+Após realizar o login, deixe marcadas as opções:
+
+- **Lembrar minha senha**
+- **Manter-me conectado**
 
 ---
 
@@ -90,8 +227,34 @@ Após finalizar a configuração:
 2. Verifique se a comunicação com o TEF está funcionando corretamente.
 3. Confira as **formas de pagamento** configuradas.
 4. Verifique se as formas de pagamento utilizadas pelo cliente estão vinculadas corretamente ao TEF.
-5. Realize testes nas formas de pagamento.
-6. Confirme se as transações são iniciadas e concluídas corretamente.
+5. Realize um teste real de pagamento.
+6. Utilize o valor de **R$ 1,00**.
+7. Solicite que o cliente utilize um cartão pessoal para realizar o teste.
+8. Acompanhe todo o fluxo da transação:
+   - Venda iniciada pelo DT.Shop.
+   - Acionamento do TEF.
+   - Processamento do pagamento.
+   - Retorno para o DT.Shop.
+   - Aprovação da transação.
+   - Impressão do comprovante.
+   - Impressão da Nota Fiscal.
+
+:::tip[Importante]
+
+Utilize **R$ 1,00** no teste, pois algumas adquirentes podem não aceitar transações de cartão com valor inferior a R$ 1,00.
+
+:::
+
+### Teste do PIX
+
+Caso o cliente utilize **PIX pelo PAYER**:
+
+1. Realize também uma transação de teste utilizando PIX.
+2. Verifique se o PIX é acionado corretamente.
+3. Confirme o processamento da transação.
+4. Verifique se o retorno para o DT.Shop ocorre normalmente.
+
+Somente finalize o atendimento após validar todas as formas de pagamento utilizadas pelo cliente.
 
 ---
 
