@@ -1,0 +1,64 @@
+````mdx
+---
+title: "Ponto de Corte nas Matrizes Comerciais"
+description: "Entenda como funciona o Ponto de Corte nas Matrizes Comerciais do Sentus e como ele limita a seleção de tabelas de preço pelos representantes."
+sidebar_position: 79
+---
+
+# Ponto de Corte nas Matrizes Comerciais
+
+## O que é o Ponto de Corte?
+
+O **Ponto de Corte** é uma configuração utilizada nas **Matrizes Comerciais do Sentus** para **limitar quais tabelas de preço um representante pode utilizar na emissão de pedidos pela Web**.
+
+Essa configuração é especialmente importante para empresas que possuem várias tabelas de preço e não querem permitir que o representante escolha livremente uma tabela com valores menores do que aqueles autorizados para ele.
+
+## Primeiro: como funciona a Matriz Comercial?
+
+A **Matriz Comercial** é utilizada para vincular um representante a uma determinada **Tabela de Preços**.
+
+As tabelas possuem uma **posição**, definida pela própria empresa.
+
+Essa posição determina a prioridade em que o Sentus procura os preços.
+
+### Exemplo
+
+A empresa possui:
+
+| Tabela | Posição |
+| --- | ---: |
+| Tabela Promocional | **99** |
+| Tabela do Representante 1 | **50** |
+
+Mesmo que o representante esteja vinculado à tabela de posição **50**, o Sentus procura primeiro os preços da tabela de posição **99**, pois ela possui uma posição superior.
+
+A ordem de busca será:
+
+```text
+Posição 99
+    ↓
+Posição 50
+````
+
+Se o produto possuir preço cadastrado na tabela **99**, esse será o preço utilizado.
+
+Caso o produto não esteja na tabela **99**, o sistema continua a busca e utiliza a tabela **50** do representante.
+
+## Onde está o problema?
+
+Suponha que existam outras tabelas abaixo da posição 50:
+
+| Tabela                 | Posição |
+| ---------------------- | ------: |
+| Tabela Promocional     |  **99** |
+| Tabela Representante 1 |  **50** |
+| Tabela Especial        |  **40** |
+| Tabela Atacado         |  **30** |
+| Tabela Mínima          |  **20** |
+
+Sem um **Ponto de Corte**, durante a emissão do pedido pela Web, o representante pode ter acesso às demais tabelas disponíveis e alterar a tabela utilizada no pedido.
+
+Isso pode permitir, por exemplo, que um representante vinculado à tabela **50** escolha a tabela **30**, que possui preços menores.
+
+:::warning Importante
+O Ponto de Corte existe justamente para impedir que o representante selecione manualmente tabelas abaixo do limite definido pela empresa.
