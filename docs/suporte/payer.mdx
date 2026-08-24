@@ -4,47 +4,94 @@ sidebar_position: 103
 
 # PAYER
 
-**Como realizar**
+## Passo a passo para instalação e configuração do TEF PAYER
 
-**Instalação direta**
+### 1. Preparar o computador
+
+1. Desinstale ou desative o antivírus, caso ele esteja bloqueando a instalação.
+2. Verifique se existe uma nova atualização disponível para o **DT.Shop**.
+3. Caso exista uma versão mais recente, atualize o DT.Shop antes de continuar.
+
+### 2. Localizar os dados do cliente
+
+1. Acesse o cadastro de **Participantes**.
+2. Localize o participante referente ao cliente.
+3. Utilize os dados disponíveis no cadastro para facilitar o preenchimento das configurações.
+4. Copie o **CNPJ** do participante.
+5. Acesse a aba **Observação**.
+6. Localize o **token do PAYER** disponível nas observações.
+
+:::tip[Dica]
+
+Sempre que possível, copie os dados diretamente do cadastro de **Participantes**, principalmente o CNPJ, para evitar erros de digitação.
+
+:::
+
+### 3. Instalar o PAYER
 
 Também é possível baixar o instalador diretamente pelo link abaixo:
 
 [Baixar o instalador do PAYER — versão 1.29.10](https://checkout-apps2.s3.amazonaws.com/setup_payer_checkout_v1.29.10-beta.exe)
 
-**Informações**
+Normalmente, ao acessar o endereço, o download será iniciado automaticamente.
 
-Normalmente, após acessar o endereço do PAYER em uma nova aba, a instalação será iniciada automaticamente.
+Caso o download não seja iniciado, verifique se o navegador bloqueou o download ou a abertura da página.
 
-Caso o processo não seja iniciado, verifique se o navegador bloqueou o download ou a abertura da página.
+Caso não funcione:
 
-Ao acessar o link, o download deverá ser iniciado automaticamente.
-
-Caso não funcione :
-
-Acesse o endereço:
-
-[Downloads DataChamp](https://www.datachamp.com.br/downloads/)
-
-Em seguida:
-
-1. Abra a pasta **DTshop/**.
-2. Acesse a pasta **TEF/**.
-3. Localize e abra o passo a passo referente ao **PAYER**.
-4. Na página exibida, copie o endereço de instalação iniciado por **https://**.
-5. Abra uma nova aba no navegador e cole o endereço copiado.
-6. Pressione **Enter** para iniciar o download ou a instalação do PAYER.
+1. Acesse [Downloads DataChamp](https://www.datachamp.com.br/downloads/).
+2. Abra a pasta **DTshop/**.
+3. Acesse a pasta **TEF/**.
+4. Localize e abra o passo a passo referente ao **PAYER**.
+5. Na página exibida, copie o endereço de instalação iniciado por **https://**.
+6. Abra uma nova aba no navegador.
+7. Cole o endereço copiado.
+8. Pressione **Enter** para iniciar o download ou a instalação do PAYER.
 
 ---
 
-## Resumo em Slides
+## Configuração no DT.Shop
 
-<object
-  data="/interno/pdf/PAYER.pdf"
-  type="application/pdf"
-  width="100%"
-  height="550"
-></object>
+Após instalar o PAYER:
+
+1. Abra as configurações do **DT.Shop**.
+2. Informe a senha:
+
+   `@tu4l1t4`
+
+3. Acesse **Configurações TEF**.
+4. Preencha os campos de usuário utilizando os dados disponíveis no cadastro de **Participantes**.
+5. Confira os dados informados antes de salvar.
+
+---
+
+## Configuração no PAYER
+
+1. Abra o **PAYER**.
+2. Informe o **CNPJ** do cliente.
+3. Informe o **token** do PAYER.
+4. O CNPJ deve ser obtido no cadastro de **Participantes**.
+5. O token está localizado na aba **Observação** do participante.
+6. Continue a configuração seguindo o **passo a passo do PDF**.
+
+:::tip[Importante]
+
+Confirme se o CNPJ e o token pertencem ao mesmo participante antes de finalizar a configuração.
+
+:::
+
+---
+
+## Testes após a configuração
+
+Após finalizar a configuração:
+
+1. Realize um teste pelo **DT.Shop**.
+2. Verifique se a comunicação com o TEF está funcionando corretamente.
+3. Confira as **formas de pagamento** configuradas.
+4. Verifique se as formas de pagamento utilizadas pelo cliente estão vinculadas corretamente ao TEF.
+5. Realize testes nas formas de pagamento.
+6. Confirme se as transações são iniciadas e concluídas corretamente.
 
 ---
 
@@ -62,11 +109,11 @@ Solicite as seguintes informações do responsável:
 
 ## Como contratar
 
-**Pelo aplicativo**
+### Pelo aplicativo
 
 Realize a contratação pelo aplicativo.
 
-**Pelo portal**
+### Pelo portal
 
 Abra um ticket no portal:
 
@@ -107,42 +154,51 @@ Verifique se a Smart POS possui acesso à internet antes de iniciar a configura�
 
 ---
 
-## mensagem padrão para enviar para o cliente
+## Mensagem padrão para enviar para o cliente
 
 Prezado(a),
 
 Para darmos andamento à integração do TEF e do PIX com o ERP Sentus, serão necessárias as seguintes informações.
 
-Integração TEF (Cartões)
+### Integração TEF (Cartões)
 
 Para a contratação e configuração do TEF, solicitamos os seguintes dados do responsável pela empresa:
 
-* Nome do responsável:
-* CPF:
-* E-mail:
-* Celular:
-* Data de nascimento:
-* Nome da mãe:
-* Endereço completo:
-Além disso, solicite à sua instituição financeira o Número Lógico do TEF, que será utilizados na configuração da integração. 
+- Nome do responsável:
+- CPF:
+- E-mail:
+- Celular:
+- Data de nascimento:
+- Nome da mãe:
+- Endereço completo:
 
-Integração PIX
+Além disso, solicite à sua instituição financeira o **Número Lógico do TEF**, que será utilizado na configuração da integração.
+
+### Integração PIX
 
 Solicite ao gerente ou ao suporte técnico da sua instituição financeira as credenciais de acesso à API PIX:
 
-* Client ID
-* Client Secret
-* Chave PIX
+- Client ID
+- Client Secret
+- Chave PIX
 
 Além disso, informe que a integração será realizada por meio de um dos seguintes integradores homologados:
 
-* Fiserv, ou
-* Software Express, ou
-* Payer
+- Fiserv
+- Software Express
+- Payer
 
 Após receber todas essas informações, encaminhe-as para nossa equipe para que possamos realizar a configuração e os testes da integração no ERP Sentus.
 
 Em caso de dúvidas durante o processo, permanecemos à disposição para auxiliar.
 
+---
 
+## Resumo em Slides
 
+<object
+  data="/interno/pdf/PAYER.pdf"
+  type="application/pdf"
+  width="100%"
+  height="550"
+/>
