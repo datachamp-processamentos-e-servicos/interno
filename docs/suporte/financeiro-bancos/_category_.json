@@ -1,0 +1,11 @@
+{
+  "label": "Financeiro e Bancos",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "Financeiro e Bancos",
+    "description": "Procedimentos financeiros, importações de títulos e homologações bancárias."
+  }
+}
