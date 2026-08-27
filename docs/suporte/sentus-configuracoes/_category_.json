@@ -1,0 +1,11 @@
+{
+  "label": "Sentus – Configurações",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "Sentus – Configurações",
+    "description": "Configurações, parâmetros e rotinas gerais do Sentus."
+  }
+}
