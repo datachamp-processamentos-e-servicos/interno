@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkteste=self.webpackChunkteste||[]).push([["7337"],{63994(e){e.exports=JSON.parse('{"metadata":{"permalink":"/interno/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":0,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
