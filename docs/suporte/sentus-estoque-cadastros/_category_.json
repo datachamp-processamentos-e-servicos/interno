@@ -1,0 +1,11 @@
+{
+  "label": "Sentus – Estoque e Cadastros",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "Sentus – Estoque e Cadastros",
+    "description": "Cadastros, importações, conferências, movimentações e rotinas de estoque do Sentus."
+  }
+}
