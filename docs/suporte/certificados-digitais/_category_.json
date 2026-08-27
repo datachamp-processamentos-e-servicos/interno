@@ -1,0 +1,11 @@
+{
+  "label": "Certificados Digitais",
+  "position": 9,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "Certificados Digitais",
+    "description": "Procedimentos para emissão, cadastro, configuração e controle de certificados digitais."
+  }
+}
