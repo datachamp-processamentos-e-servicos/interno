@@ -1,0 +1,11 @@
+{
+  "label": "Processos Internos",
+  "position": 10,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "Processos Internos",
+    "description": "Procedimentos administrativos e operacionais utilizados internamente pela equipe."
+  }
+}
