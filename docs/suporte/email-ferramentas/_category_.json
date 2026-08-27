@@ -1,0 +1,11 @@
+{
+  "label": "E-mail e Ferramentas",
+  "position": 8,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "E-mail e Ferramentas",
+    "description": "Configurações de e-mail, ferramentas de atendimento e arquivos utilizados pela equipe."
+  }
+}
