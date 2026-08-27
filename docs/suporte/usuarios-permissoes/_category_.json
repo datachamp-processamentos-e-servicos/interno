@@ -1,0 +1,11 @@
+{
+  "label": "Usuários e Permissões",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "Usuários e Permissões",
+    "description": "Procedimentos relacionados a usuários, grupos, acessos e permissões."
+  }
+}
