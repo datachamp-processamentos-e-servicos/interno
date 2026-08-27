@@ -1,11 +1,11 @@
 {
-  "label": "Acesso rápido",
+  "label": "Acesso Rápido",
   "position": 1,
   "collapsible": true,
   "collapsed": false,
   "link": {
     "type": "generated-index",
-    "title": "Acesso rápido",
+    "title": "Acesso Rápido",
     "description": "Procedimentos mais utilizados pela equipe de suporte."
   }
 }
