@@ -397,3 +397,114 @@ Em caso de dúvidas durante o processo, permanecemos à disposição para auxili
   width="100%"
   height="550"
 />
+
+---
+
+# Método Utilizado 21/10/2026  
+
+## 1. Iniciar a instalação do PAYER
+
+Inicie a instalação do PAYER antes das demais configurações para agilizar o processo.
+
+1. Acesse [Downloads da Datachamp](https://www.datachamp.com.br/downloads).
+2. Abra a pasta **DTshop/** e, em seguida, **TEF/**.
+3. Localize e abra o passo a passo referente ao **PAYER**.
+4. Na página exibida, copie o endereço de instalação iniciado por `https://`.
+5. Abra uma nova aba no navegador e cole o endereço copiado.
+6. Inicie a instalação do PAYER.
+
+Enquanto a instalação é realizada, prossiga com os ajustes abaixo. Quando o PAYER solicitar o login, utilize os dados localizados no Sentus conforme a etapa 4.
+
+### Orientação sobre o antivírus
+
+A empresa de TEF orientou a desinstalação do antivírus. Antes de realizar esse procedimento, confirme com o responsável pelo ambiente e com o suporte de TEF como manter a proteção do computador, pois a remoção pode deixá-lo desprotegido. Não mantenha o equipamento permanentemente sem proteção.
+
+## 2. Configurar os adaptadores de rede
+
+1. Abra o **Gerenciador de Dispositivos** do Windows.
+2. Acesse **Adaptadores de rede**.
+3. Abra as propriedades de um adaptador e verifique se ele possui a aba **Gerenciamento de Energia**.
+4. Quando a aba estiver disponível, desmarque a opção que permite ao computador desligar o dispositivo para economizar energia.
+5. Clique em **OK**.
+6. Repita o procedimento em todos os adaptadores que possuírem essa opção.
+
+## 3. Configurar os controladores USB
+
+1. Ainda no **Gerenciador de Dispositivos**, acesse **Controladores USB**.
+2. Abra as propriedades de um dispositivo e verifique se ele possui a aba **Gerenciamento de Energia**.
+3. Quando a aba estiver disponível, desmarque a opção que permite ao computador desligar o dispositivo para economizar energia.
+4. Clique em **OK**.
+5. Repita o procedimento nos demais controladores que apresentarem essa opção.
+
+## 4. Localizar os dados do cliente no Sentus
+
+1. No Sentus, acesse o cadastro de **Emitentes**.
+2. Localize o **Participante** referente ao emitente.
+3. Copie o **CNPJ** do participante.
+4. No campo **Observação**, localize o token do PAYER, o e-mail de cadastro e a senha.
+5. Utilize os dados desse cadastro para preencher as configurações das próximas etapas.
+
+## 5. Fazer login no PAYER
+
+1. Aguarde a conclusão da instalação do PAYER.
+2. Na tela de login, informe o e-mail e a senha localizados no cadastro do participante vinculado ao emitente no Sentus.
+3. Conclua o login.
+
+## 6. Configurar o TEF no DT.Shop
+
+1. Abra as configurações do **DT.Shop**.
+2. Informe a senha de acesso: `@tu4l1t4`.
+3. Acesse **Configurações TEF**.
+4. Configure os campos conforme abaixo:
+
+   | Campo | Configuração |
+   | --- | --- |
+   | **Habilitar TEF** | **Integrado PAYER** |
+   | **Comprovantes TEF** | **Somente via do cliente impressão direta** |
+   | **Usuário** | Utilize o usuário disponível no cadastro do participante vinculado ao emitente. |
+   | **Senha** | Utilize a mesma senha disponível nesse cadastro. |
+
+5. Confira os dados informados e salve as configurações.
+
+A opção **Somente via do cliente impressão direta** deve ser utilizada como padrão para os comprovantes TEF, mas pode ser ajustada conforme a preferência do cliente.
+
+## 7. Configurar o PinPad
+
+Após realizar a configuração inicial do PAYER:
+
+1. Conecte o **PinPad** ao computador. Em computadores de mesa, utilize preferencialmente uma porta USB localizada na parte traseira.
+2. Acesse as configurações do **PinPad** no PAYER.
+3. Desative a opção **AUTO USB**.
+4. Clique em **Auto Detectar PinPad**.
+5. Verifique se o equipamento foi localizado corretamente.
+6. Após a detecção, habilite novamente a opção **AUTO USB**.
+7. Clique em **Atualizar**.
+
+## 8. Configurar a impressora
+
+1. Acesse a configuração de **Impressora** no PAYER.
+2. Selecione a impressora utilizada pelo cliente.
+3. Realize um teste de impressão.
+4. Confirme se a impressão foi realizada corretamente.
+5. Salve as configurações.
+
+## 9. Carregar as configurações do cliente
+
+1. Volte ao menu principal do PAYER.
+2. Acesse **Meus Serviços**.
+3. Selecione **Pagamento Avulso**.
+4. Informe um valor para a transação.
+5. Selecione a opção **Débito**.
+6. Aguarde o download da carga de tabelas.
+
+Não é necessário concluir o pagamento nessa etapa.
+
+## 10. Validar a integração pelo DT.Shop
+
+1. No **DT.Shop**, confira as formas de pagamento utilizadas pelo cliente.
+2. Verifique se essas formas de pagamento estão vinculadas corretamente ao TEF.
+3. Realize um teste real de pagamento no valor de `R$ 1,00`.
+4. Confirme se o DT.Shop se comunica com o TEF e se o pagamento é concluído corretamente.
+5. Se o teste funcionar, encaminhe o atendimento ao **Marcos** para finalizar os demais testes.
+
+---
