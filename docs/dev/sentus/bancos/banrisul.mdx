@@ -28,9 +28,9 @@ Este documento orienta o suporte na configuração do **portador Banrisul (códi
 
 ## Pré-requisitos (cliente)
 
-<Admonition type="warning" title="Sem estes itens não é possível configurar">
+:::warning[Sem estes itens não é possível configurar]
 O cliente precisa ter **convênio de cobrança ativo** no Banrisul e **acesso liberado ao Portal de Desenvolvedores**.
-</Admonition>
+:::
 
 1. **Convênio de Cobrança** (Código de Beneficiário) ativo. Se não tiver, o cliente deve procurar a agência Banrisul de relacionamento.
 2. **Cadastro no [Banrisul for Developers](https://developers.banrisul.com.br)**: solicitar login e credenciais por e-mail para `gestao_sistemas_cobranca_operacional@banrisul.com.br`. O fluxo é feito **uma vez para Sandbox e outra para Produção**.
@@ -49,9 +49,9 @@ O cliente precisa ter **convênio de cobrança ativo** no Banrisul e **acesso li
 | Dígito de controle (2 dígitos) | Contrato / agência | `Carteira` (usado na listagem) |
 | CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
 
-<Admonition type="info" title="Código do beneficiário">
+:::info[Código do beneficiário]
 Formato de 13 dígitos (ex.: `0010000001088`). Na emissão o Sentus completa com zeros à esquerda; cadastre sempre os 13 dígitos.
-</Admonition>
+:::
 
 ## Cadastro do portador no Sentus
 
@@ -109,12 +109,12 @@ api.client_id=COLE_O_CLIENT_ID
 api.client_secret=COLE_O_CLIENT_SECRET
 ```
 
-<Admonition type="warning" title="Atenção">
+:::warning[Atenção]
 - `{id}` é literal: o Sentus substitui pelo identificador do boleto (nosso número).
 - O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção. Preencha as duas famílias se o cliente vai passar pelas duas etapas.
 - `api.sentus.roles` deve ser exatamente `boletos`.
 - Sem `api.url.cob*` (ou `*Hom`) do ambiente ativo, a operação falha com *"Url de ... inválida"*.
-</Admonition>
+:::
 
 ## Ambientes
 
@@ -189,4 +189,3 @@ A URL não usa token: a validação é feita pelo trio acima. O Sentus responde 
 - Cobrança / homologação: `gestao_sistemas_cobranca_operacional@banrisul.com.br`
 - Suporte API: `api@banrisul.com.br`
 - Portal: https://developers.banrisul.com.br
-
