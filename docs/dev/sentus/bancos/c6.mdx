@@ -1,1 +1,185 @@
+---
+sidebar_position: 4
+title: C6
+description: Configuração de integração de boletos via API C6
+---
+
+# C6 Bank
+
+Este documento orienta o suporte na configuração do **portador C6 Bank** para clientes que vão usar a cobrança (boletos) e o extrato via API do Sentus.
+
+## Visão geral
+
+- Autenticação: **OAuth2 `client_credentials`** (`client_id` + `client_secret`) **com certificado digital mTLS**. O certificado é obrigatório em **todas** as chamadas, inclusive a de token.
+- Todas as chamadas levam `Authorization: Bearer <token>`.
+- O token expira após **10 minutos de inatividade** e o C6 **não devolve `refresh_token`**. O Sentus pede um novo token quando precisa. Gerar um novo token não invalida o anterior.
+- Limite do C6: **60 requisições por minuto por chave**, somadas todas as APIs.
+- Somente clientes **PJ** (conta PF não usa as APIs).
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint C6 (`/v1/bank_slips`) | Observação |
+|----------|--------------------------------|------------|
+| Emitir boleto | `POST /` | |
+| Consultar boleto | `GET /{id}` | |
+| Alterar boleto | `PUT /{id}` | |
+| Baixar (cancelar) boleto | `PUT /{id}/cancel` | Ver aviso na seção de parâmetros |
+| Extrato | `GET /v1/statement/` | Período de até 30 dias |
+| Webhook de cobrança (C6 → Sentus) | `POST /c6/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` | |
+
+:::info[Identificador do boleto]
+No C6 o boleto é identificado pelo **`id`** devolvido na emissão, guardado no título como `collectionId`. Consulta, alteração, baixa e webhook usam esse valor.
+:::
+
+## Pré-requisitos (cliente)
+
+1. **Conta PJ ativa no C6 Bank** e **termo de uso das APIs aceito**.
+2. **Cadastro de integração** no portal [C6 Bank Developers](https://developers.c6bank.com.br), em *Cadastro*, escolhendo o tipo de empresa:
+   - **Cliente final:** integração para uso interno, exclusivo da empresa.
+   - **ERP/Software house:** integração disponibilizada para um ou mais clientes de uma plataforma.
+3. Para usar **boleto com liquidação via barra ou Pix** (bolepix): ter **3 meses de conta ativa** ou **CNPJ com 6 meses** de registro. **ERPs enquadrados como MEI não são elegíveis** para a homologação.
+4. **Credenciais de API, certificado mTLS e roteiro de testes** recebidos do C6 após o cadastro (o C6 responde em até 5 dias úteis).
+5. **Homologação** com o roteiro de testes aprovado pelo C6, para liberar produção.
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| `client_id` | Sandbox: e-mail do C6 após o cadastro. Produção: Web Banking → Integrações via API (usuário Master) | `api.client_id` |
+| `client_secret` | Mesma origem do `client_id` | `api.client_secret` |
+| Certificado digital (`.crt`) | Sandbox: enviado pelo C6. Produção: baixado no Web Banking ao criar a chave (**download único**) | Conteúdo do portador (arquivo `.crt`) |
+| Chave privada (`.key`) | Fornecida junto com o certificado | Conteúdo do portador (arquivo `.key`) |
+| Agência e conta | Conta PJ do cliente no C6 | `Agência` / `Conta` |
+| Carteira | **15** em produção, **21** em sandbox | `Carteira` |
+
+:::warning[Carteira muda entre ambientes]
+A carteira de cobrança do C6 é **15 em produção** e **21 em sandbox**. Ao trocar de ambiente, troque a carteira.
+:::
+
+:::info[Credenciais por ambiente]
+- **Sandbox:** o C6 envia as credenciais por e-mail após o cadastro. Funciona de **segunda a sexta, das 07h às 22h**, com dados fictícios.
+- **Produção:** o cliente (usuário Master) gera `client_id`, `client_secret` e o certificado no **Web Banking**, em *Integrações via API* (passo a passo abaixo).
+:::
+
+## Cadastro do portador no Sentus
+
+Campos principais do portador:
+
+| Campo | Valor |
+|-------|-------|
+| Banco | `C6 Bank` |
+| Agência / Conta | Conforme conta PJ do cliente |
+| Carteira | `15` (produção) ou `21` (sandbox) |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado) |
+| Conteúdo | **Zip** com o certificado (`.crt`) e a chave (`.key`) |
+
+Juros, multa, desconto e protesto seguem o combinado do cliente com o C6.
+
+### Gerando credenciais e certificado em produção (Web Banking)
+
+Em produção quem gera tudo é o **cliente**, no Web Banking do C6, e **só um usuário com perfil Master** pode fazer isso (guia oficial do C6):
+
+1. Entrar no Web Banking C6 Bank, clicar nos três pontos da tela inicial e abrir **Integrações via API**.
+2. No campo **Parceiro**, pesquisar pelo **nome ou CNPJ do ERP/sistema** (aqui, a Datachamp). O parceiro precisa existir na lista: ele vem do cadastro/homologação de *ERP/Software house* no portal de desenvolvedores.
+3. Em **Descrição da chave**, identificar a aplicação (ex.: "Sentus").
+4. Em **Permissões da chave**, marcar o produto desejado com **Selecionar todos**.
+5. Clicar em **Criar nova chave**, informar a senha e confirmar no aplicativo C6 Bank.
+6. Salvar o **Client ID**, o **Client Secret** e **baixar o certificado**.
+
+:::warning[O certificado só pode ser baixado uma vez]
+A tela final avisa que o certificado **não pode ser acessado de novo**. Se o arquivo se perder, é preciso **criar uma nova chave**, que gera novo `client_id`, `client_secret` e certificado. Guarde o arquivo em local seguro e envie ao suporte por canal seguro.
+:::
+
+**Certificado no Sentus:** o arquivo baixado é compactado. No Sentus ele vai no conteúdo do portador como **zip** com um arquivo `.crt` e um `.key`. Confira antes de subir se o zip do C6 traz esses dois arquivos; se os nomes ou a extensão forem outros, o Sentus não os encontra.
+
+**Validade e renovação:** nenhuma fonte do C6 informa a validade do certificado nem um processo de renovação. Na prática, o certificado é parte de uma chave: para trocar, crie uma **nova chave** no Web Banking e atualize `client_id`, `client_secret` e o zip no portador. Para saber a data de vencimento de um certificado em mãos, use `openssl x509 -enddate -noout -in certificado.crt`.
+
+### Certificado mTLS
+
+O Sentus lê do conteúdo do portador (um arquivo zip) dois arquivos: um terminado em **`.crt`** (certificado) e outro terminado em **`.key`** (chave privada). Sem eles a autenticação e todas as chamadas falham.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção**:
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://baas-api.c6bank.info/v1/auth/
+api.url.cob=https://baas-api.c6bank.info/v1/bank_slips/
+api.url.cobConsulta=https://baas-api.c6bank.info/v1/bank_slips/{id}
+api.url.cobAlt=https://baas-api.c6bank.info/v1/bank_slips/{id}
+api.url.extrato=https://baas-api.c6bank.info/v1/statement/
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+Para **Homologação (Sandbox)**, use as mesmas chaves com sufixo `Hom` (`api.url.authHom`, `api.url.cobHom`, `api.url.cobConsultaHom`, `api.url.cobAltHom`, `api.url.extratoHom`), `api.ambiente=HOMOLOGACAO` e o host `https://baas-api-sandbox.c6bank.info`.
+
+:::warning[Atenção]
+- Sem a chave `api.url.*` do ambiente ativo, a operação falha com *"Url de ... inválida"*.
+:::
+
+## Webhook de cobrança (opcional)
+
+Para o Sentus ser avisado de pagamentos, registre no C6 uma notificação apontando para o Sentus:
+
+```
+POST https://baas-api.c6bank.info/v1/webhooks/
+Content-Type: application/json
+
+{
+  "service": "BANK_SLIP",
+  "url": "https://<host-sentus>/c6/webhooks/cobranca/{tenantId}/{portId}/{portAuth}"
+}
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` | Valor que o suporte define em `api.webhookAuth` no `params` do portador. Se faltar ou diferir, o Sentus rejeita o webhook |
+
+Pontos do C6:
+- Só aceita URL **HTTPS**.
+- O C6 **não envia assinatura, header de autenticação nem segredo**: por isso o Sentus valida pela URL (`portAuth`) e trata a notificação só como um aviso de que algo mudou.
+- O webhook é **por `client_id`**: só recebe notificações dos boletos emitidos com a mesma credencial. Para o mesmo boleto emitido por outro sistema com outra credencial, é outro webhook.
+- Serviços: `BANK_SLIP` (boleto) e `BANK_SLIP_PIX` (bolepix). Status do boleto: `CREATED`, `PAID` (e `CANCELLED`, "em breve" na doc do C6).
+- O corpo traz `external_id`, que o Sentus usa para localizar o título. Resposta `200`.
+
+## Checklist do suporte
+
+<div><label><input type="checkbox" /> Cliente tem conta PJ no C6 e aceitou o termo de uso das APIs</label></div>
+<div><label><input type="checkbox" /> Cadastro de integração feito no portal (cliente final ou ERP/software house)</label></div>
+<div><label><input type="checkbox" /> <code>client_id</code>, <code>client_secret</code>, certificado (<code>.crt</code>) e chave (<code>.key</code>) em mãos</label></div>
+<div><label><input type="checkbox" /> Portador criado: banco C6, agência, conta, carteira (21 sandbox / 15 produção)</label></div>
+<div><label><input type="checkbox" /> Zip com <code>.crt</code> e <code>.key</code> carregado no conteúdo do portador</label></div>
+<div><label><input type="checkbox" /> <code>params</code> preenchidos (URLs do ambiente, <code>client_credentials</code>, credenciais, <code>webhookAuth</code>)</label></div>
+<div><label><input type="checkbox" /> Teste no sandbox (seg-sex, 07h às 22h): emitir, consultar, alterar, baixar</label></div>
+<div><label><input type="checkbox" /> Roteiro de testes executado e aprovado pelo C6 (homologação)</label></div>
+<div><label><input type="checkbox" /> Produção: credenciais geradas no web-banking, carteira 15, situação do portador <code>Ativo</code></label></div>
+<div><label><input type="checkbox" /> Webhook registrado no C6 (se o cliente quiser retorno automático)</label></div>
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| `401 Unauthorized` | Credenciais incorretas, ambiente errado (credencial de sandbox em produção) ou token expirado. Ver o campo `detail` da resposta |
+| Falha ao autenticar / erro de certificado | Zip sem `.crt`/`.key`, certificado inválido ou de outro ambiente (mTLS) |
+| `429 Too many requests` | Passou de 60 requisições por minuto na mesma chave. Aguardar e repetir |
+| Sandbox não responde | Fora do horário (seg-sex, 07h às 22h) |
+| "Url de ... inválida" | Falta a chave `api.url.*` do ambiente ativo no `params` |
+| Boleto recusado na carteira | Carteira trocada entre ambientes (15 produção, 21 sandbox) |
+| Credenciais não chegam | O C6 responde em até 5 dias úteis após o cadastro |
+| Webhook não sincroniza | `portAuth` ausente ou diferente de `api.webhookAuth`, ou boleto emitido com outro `client_id` |
+
+## Contatos C6 Bank
+
+- Portal de desenvolvedores: https://developers.c6bank.com.br
+- Integração e homologação: `homologacaoapi@c6bank.com`
+- Pós-homologação (suporte PJ): telefone (11) 3003-9968 ou WhatsApp (11) 2832-6396, das 7h às 23h. Informar o CNPJ e acessar o *Menu Distribuidor*.
 
