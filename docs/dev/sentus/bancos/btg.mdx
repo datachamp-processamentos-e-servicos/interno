@@ -1,1 +1,243 @@
 
+
+# BTG Pactual
+
+Este documento orienta o suporte na configuração do **portador BTG Pactual (código 208)** para clientes que vão usar a cobrança (boletos) e o extrato via API do Sentus.
+
+## Visão geral
+
+- Autenticação: **OAuth2 com `refresh_token`**. O primeiro token é obtido pelo fluxo *Authorization Code* (o cliente precisa autorizar o acesso); depois o Sentus renova sozinho.
+- O `client_id` / `client_secret` são enviados via `Authorization: Basic`. O Sentus também envia `x-api-key` (se `api.appKey` estiver preenchido) e `context` (se `api.cob.context` estiver preenchido), que a doc do BTG não usa.
+- Todas as chamadas levam `Authorization: Bearer <access_token>`.
+- Não usa certificado digital (mTLS).
+- Operações suportadas no Sentus:
+
+| Operação | Método BTG |
+|----------|------------|
+| Emitir (registrar) boleto | `POST` na URL de cobrança |
+| Consultar boleto | `GET` (usa `{id}`) |
+| Listar boletos | `GET` (filtros por query string) |
+| Alterar boleto | Chamada na URL de alteração (usa `{id}`) |
+| Baixar boleto | `DELETE <url>/{id}` |
+| PDF do boleto | `GET` no mesmo endpoint de buscar cobrança, com `Accept: application/pdf` |
+| Extrato da conta | `GET` na API Banking Accounts |
+| Webhook de cobrança (BTG → Sentus) | `POST /btg/webhooks/cobranca/{tenantId}/{portId}` |
+
+:::info[Identificador do boleto]
+No BTG o boleto é identificado pelo **`collectionId`** (devolvido na emissão e guardado no título). Consulta, alteração, baixa, PDF e webhook usam esse valor.
+:::
+
+## Pré-requisitos (cliente)
+
+1. **Conta PJ ativa no BTG Empresas**, com cobrança (boletos) habilitada.
+2. **Convênio de cobrança** (campo `agreement` da emissão). Na doc do BTG o campo é opcional e descrito só como "Número do convênio"; confirmar com o BTG se a conta do cliente tem convênio e qual é o número.
+3. **Aplicativo criado na Área do Desenvolvedor** do BTG ([developers.empresas.btgpactual.com](https://developers.empresas.btgpactual.com)), com:
+   - **URI de redirecionamento** cadastrada;
+   - escopos `openid` (obrigatório) e `brn:btg:empresas:banking:collections` (consultar e gerenciar cobranças; a variante `.readonly` só permite consulta, não serve para emitir).
+   - o token de cobrança precisa ser gerado por *Authorization Code*.
+4. **Usuário operador (ou superior)** da empresa para autorizar o aplicativo (fluxo Authorization Code). Em produção, usuário só com perfil *desenvolvedor* gera token inválido.
+5. Para o extrato: escopo `empresas.btgpactual.com/accounts.readonly` também no aplicativo.
+
+:::warning[Plano Avançado]
+Se **o cliente cria o aplicativo** (first-party), ele precisa contratar o **Plano Avançado** no BTG Empresas para usar a produção. Sem ele o aplicativo não é verificado e não opera com dados reais.
+:::
+
+### Passo a passo no BTG (antes de configurar o Sentus)
+
+1. **Registrar um usuário desenvolvedor.** O titular da conta PJ entra no BTG Empresas, clica no nome da empresa, depois em *Gestão de usuários* → *Novo usuário* → *Incluir um operador*, preenche os dados e escolhe a função **Desenvolvedor**. O convidado conclui o cadastro no app BTG Empresas (documentos e biometria, com análise).
+2. **Criar o aplicativo** (cliente ou Datachamp, ver abaixo) na Área do Desenvolvedor, em 3 etapas: dados do aplicativo (nome, tipo, descrição, modelo de integração e **URL de redirecionamento**), escopos e resumo. Só o desenvolvedor cadastrado pelo titular cria aplicativos.
+3. **Sandbox:** o aplicativo já fica disponível e é gratuito.
+4. **Produção:** o aplicativo precisa ser **verificado** (first-party: Plano Avançado contratado, aplicativo criado com o toggle em *Produção* e análise do BTG em **até 7 dias úteis**) ou **homologado** (third-party, via parcerias).
+5. Um usuário **operador ou superior** autoriza o aplicativo (ver *Autorização inicial*).
+
+:::info[Quem cria o aplicativo? Duas opções]
+O suporte escolhe o modelo conforme o caso do cliente.
+
+| | **Cliente cria o aplicativo** (first-party) | **Datachamp cria o aplicativo** (third-party) |
+|-|-----------------------------------------------|------------------------------------------------|
+| Quem cria | Titular da conta PJ do cliente (ou o desenvolvedor que ele cadastrar) | Datachamp, como software/ERP que atende vários clientes |
+| `client_id` / `client_secret` | Do cliente (um par por cliente) | Da Datachamp (o mesmo para os clientes) |
+| Produção | Aplicativo verificado pelo BTG Empresas | Só depois de homologado como *Software Homologado*, via `parcerias@btgpactual.com` |
+| Pré-requisito principal | **Plano Avançado** contratado pelo cliente | Avaliação de elegibilidade pelo time de parcerias |
+| Prazo estimado | Até 7 dias úteis após Plano Avançado e envio do aplicativo | Variável, conforme a análise |
+| Autorização (Authorization Code) | Usuário operador da empresa autoriza o aplicativo | Usuário operador de cada empresa autoriza o aplicativo da Datachamp |
+
+O token é sempre de **uma única empresa**: no modelo third-party continua havendo um consentimento e um `refresh_token` por cliente/portador.
+:::
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| `client_id` | Área do Desenvolvedor → aplicativo → três pontos → Detalhes → **Chaves** | `api.client_id` |
+| `client_secret` | Mesma tela (**Chaves**) | `api.client_secret` |
+| URI de redirecionamento | Aplicativo → Versões → ver detalhes | usada na autorização |
+| CNPJ da empresa (`companyId`) | Cadastro da empresa | `api.appKey` (usado na URL do PDF) |
+| Chave do webhook (`portAuth`) | Definida pelo suporte (texto aleatório, difícil de adivinhar) | `api.webhookAuth` |
+| `refresh_token` inicial | Fluxo Authorization Code (autorização do cliente) | `tokenRefresh` (campos adicionais) |
+| Convênio (`agreement`) | A confirmar com o BTG (opcional na API) | `Convênio` |
+| Agência | Dados da conta BTG | `Agência` |
+| Conta | Dados da conta BTG | `Conta` |
+| Id da conta (`accountId`) | BTG, formato `CNPJ-banco-agência-conta` | `api.accountId` (só extrato) |
+| CNPJ da empresa | Cadastro da empresa | `Documento` / `api.cob.cnpjPag` |
+
+:::warning[Validade dos tokens]
+- `access_token`: 24 horas. Cada renovação **invalida o token anterior**.
+- `refresh_token`: 10 dias, renovado a cada uso. Se o Sentus ficar **mais de 10 dias sem usar** o portador, o refresh expira e é preciso refazer a autorização do cliente.
+:::
+
+## Cadastro do portador no Sentus
+
+Campos principais do portador:
+
+| Campo | Valor |
+|-------|-------|
+| Banco | `BTG Pactual` |
+| Convênio | Convênio de cobrança BTG |
+| Agência / Conta | Conforme conta BTG do cliente |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado) |
+
+Juros, multa, desconto e protesto seguem o combinado do cliente com o BTG.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção** (`{companyId}` = CNPJ da empresa, só dígitos, escrito literalmente ou já preenchido):
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://id.btgpactual.com/oauth2/token
+api.url.cob=https://api.empresas.btgpactual.com/CNPJ/banking/collections
+api.url.cobConsulta=https://api.empresas.btgpactual.com/CNPJ/banking/collections/{id}
+api.url.cobListar=https://api.empresas.btgpactual.com/CNPJ/banking/collections
+api.url.cobAlt=https://api.empresas.btgpactual.com/CNPJ/banking/collections/{id}
+api.url.cobBaixa=https://api.empresas.btgpactual.com/CNPJ/banking/collections
+api.url.cobPdf=https://api.empresas.btgpactual.com/{companyId}/banking/collections/{id}
+api.appKey=CNPJ_DA_EMPRESA_SO_DIGITOS
+api.url.extrato=https://api.empresas.btgpactual.com/{companyId}/banking/accounts/{accountId}/statements
+api.accountId=CNPJ-BANCO-AGENCIA-CONTA
+api.sentus=true
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus.grantType=refresh_token
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+Para **Homologação (Sandbox)**, use as mesmas chaves com sufixo `Hom` (`api.url.authHom`, `api.url.cobHom`, `api.url.cobConsultaHom`, `api.url.cobListarHom`, `api.url.cobAltHom`, `api.url.cobBaixaHom`, `api.url.cobPdfHom`, `api.url.extratoHom`), `api.ambiente=HOMOLOGACAO` e o host `api.sandbox.empresas.btgpactual.com`. O CNPJ do sandbox é sempre `30306294000145`.
+
+| Operação | Método | Caminho (após `/{companyId}/banking`) |
+|----------|--------|----------------------------------------|
+| Criar cobrança | `POST` | `/collections` |
+| Listar cobranças | `GET` | `/collections` |
+| Buscar cobrança | `GET` | `/collections/{collectionId}` |
+| Atualizar cobrança | `PUT` | `/collections/{collectionId}` |
+| Cancelar (baixar) cobrança | `DELETE` | `/collections/{collectionId}` |
+
+:::warning[Atenção]
+- O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção.
+- `{id}` é literal: o Sentus substitui pelo `collectionId` do boleto. Na **baixa** o Sentus acrescenta `/{id}` ao final da URL (não coloque `{id}` em `cobBaixa`).
+- No **PDF** o BTG usa o mesmo endpoint de *Buscar cobrança* (`GET /{companyId}/banking/collections/{collectionId}`) com o header `Accept: application/pdf`. O Sentus monta essa URL com **dois marcadores, nesta ordem**: o 1º recebe o `api.appKey` e o 2º o id do boleto. Por isso, no BTG, `api.appKey` deve conter o **CNPJ da empresa** (`companyId`), e a URL deve ter `{companyId}` e `{id}`. As demais URLs (consulta, alterar) recebem só o id, então o CNPJ vai escrito na URL.
+- No **extrato**, `{companyId}` e `{accountId}` são preenchidos pelo Sentus. O `companyId` vem do CNPJ (`api.cob.cnpjPag`) ou, se vazio, do prefixo do `api.accountId`.
+- Em ambiente **não produtivo** o Sentus envia `x-response: success` (simulação do sandbox). Não é enviado em produção.
+- Sem a chave `api.url.*` do ambiente ativo, a operação falha com *"Url de ... inválida"*.
+:::
+
+### Autorização inicial (refresh token)
+
+O BTG exige que um usuário da empresa autorize o aplicativo (BTG Id, OAuth 2.0 *Authorization Code*). O resultado é o primeiro `refresh_token`, que deve ser gravado em `tokenRefresh` nos campos adicionais do portador (campo sensível, visível/editável apenas para perfis `MASTER` / `ROOT`). A partir daí o Sentus renova `access_token` e `refresh_token` automaticamente e atualiza o portador.
+
+Passo a passo:
+
+1. Montar a URL de autorização e abrir no navegador (usuário operador da empresa):
+
+   ```
+   https://id.btgpactual.com/oauth2/authorize?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope={scopes}&prompt=login
+   ```
+
+   `scopes` = `openid brn:btg:empresas:banking:collections` (acrescente o escopo de extrato se for usar).
+2. Fazer login, conferir os escopos e **escolher a empresa** na lista (o token é de **uma única empresa**; para outra empresa, outro token/portador).
+3. O BTG redireciona para a `redirect_uri` com `?code=...`. Copiar o `code`.
+4. Trocar o `code` por tokens:
+
+   ```
+   POST https://id.btgpactual.com/oauth2/token
+   Authorization: Basic base64(client_id:client_secret)
+   Content-Type: application/x-www-form-urlencoded
+
+   code={code}&redirect_uri={redirect_uri}&grant_type=authorization_code
+   ```
+5. Gravar o `refresh_token` da resposta em `tokenRefresh` (campos adicionais do portador). Esse campo só é gravado por usuário com perfil **MASTER** ou **ROOT**: para os demais perfis o valor enviado é ignorado e o atual é mantido.
+6. Escolher no consentimento o **CNPJ do portador**. Relato de ERP que integra com o BTG (Omie): o CNPJ selecionado precisa ser o mesmo do aplicativo, senão a integração não funciona.
+
+O `code` é de uso único e expira rápido: faça os passos 3 a 5 logo em seguida.
+
+## Ambientes
+
+| | Homologação | Produção |
+|-|-------------|----------|
+| API | `https://api.sandbox.empresas.btgpactual.com` | `https://api.empresas.btgpactual.com` |
+| Autenticação (BTG Id) | `https://id.sandbox.btgpactual.com` | `https://id.btgpactual.com` |
+| Empresa | Só o CNPJ de sandbox `30306294000145` | Empresa real escolhida no consentimento |
+| Usuário que autoriza | Desenvolvedor ou superior | **Operador** ou superior |
+| Respostas | Simuladas (Wiremock) | Reais |
+| Tokens | Não valem em produção | Não valem no sandbox |
+| Header `x-response` | Enviado (`success`) | Não enviado |
+
+## Webhook de cobrança (opcional)
+
+Para o Sentus ser avisado de pagamentos/baixas, o BTG precisa chamar:
+
+```
+POST https://<host-sentus>/btg/webhooks/cobranca/{tenantId}/{portId}
+Header: portAuth: <chave do portador>
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` (header) | Precisa ser igual ao `api.webhookAuth` gravado no `params` do portador (o suporte define o valor) |
+
+O corpo traz o `collectionId`; o Sentus localiza o título por ele e sincroniza. Resposta `200`.
+
+Pelo lado do BTG (doc oficial de Webhooks):
+- O webhook é cadastrado na **Área do Desenvolvedor**, por aplicativo, escolhendo os eventos, ou pela API do BTG: `POST /{companyId}/apps/{appId}/webhooks` (a *secret* se troca em `POST /{companyId}/apps/{appId}/webhooks/{webhookId}/secret`).
+- O endpoint precisa ser **HTTPS**, na porta padrão (sem porta customizada), e responder em até **10 segundos**.
+- Resposta `200` = entregue. `4XX`/`5XX` = o BTG tenta mais 3 vezes em 10 minutos.
+- O BTG só envia eventos dos escopos que passaram por uma autorização de token do aplicativo.
+- A autenticação do BTG é um `Authorization: Bearer <webhook secret>`.
+
+:::warning[Divergência a validar]
+A doc do BTG envia o corpo no formato `{ webhookId, event, data }`, com o `collectionId` dentro de `data`, e autentica com `Authorization: Bearer <webhook secret>`. O `BtgWebhookRequest` do Sentus lê `collectionId` na **raiz** do corpo e o `portAuth` em header. Se o BTG enviar o envelope acima, o `collectionId` chega vazio e o título não sincroniza. Validar com um evento real (ou ajustar o código do webhook) antes de orientar o cliente.
+:::
+
+Eventos de cobrança do BTG: `collections.created`, `collections.paid`, `collections.expired` e `collections.cancelled`. Status da cobrança: `CREATED`, `PAID`, `CANCELED`, `EXPIRED`, `PROCESSING`, `FAILED`, `UPDATED`, `UPDATING`, `CANCEL_FAILED`, `RETURNED`, `CANCELING`.
+
+## Checklist do suporte
+
+<div><label><input type="checkbox" /> Conta BTG Empresas ativa com cobrança habilitada</label></div>
+<div><label><input type="checkbox" /> Usuário desenvolvedor registrado e aplicativo criado (verificado, em produção), com <code>client_id</code> / <code>client_secret</code> e URI de redirecionamento em mãos</label></div>
+<div><label><input type="checkbox" /> Cliente autorizou a aplicação e o <code>refresh_token</code> inicial foi obtido</label></div>
+<div><label><input type="checkbox" /> Portador criado: banco BTG, convênio, agência, conta</label></div>
+<div><label><input type="checkbox" /> <code>params</code> preenchidos (URLs do ambiente, <code>grantType=refresh_token</code>, credenciais)</label></div>
+<div><label><input type="checkbox" /> <code>tokenRefresh</code> gravado nos campos adicionais do portador</label></div>
+<div><label><input type="checkbox" /> Teste em homologação: emitir, consultar, baixar, PDF</label></div>
+<div><label><input type="checkbox" /> Produção: credenciais e URLs ajustadas, situação do portador <code>Ativo</code></label></div>
+<div><label><input type="checkbox" /> Extrato: <code>accountId</code> e escopo <code>accounts.readonly</code> (se o cliente usar)</label></div>
+<div><label><input type="checkbox" /> Webhook configurado (se o cliente quiser retorno automático)</label></div>
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| "Falha ao obter token. Status: 400/401" | `refresh_token` expirado (mais de 10 dias sem uso) ou já invalidado: refazer a autorização |
+| Token funciona e logo deixa de funcionar | Outro sistema renovou o token com o mesmo `refresh_token` e invalidou o anterior |
+| `401 Unauthorized` | Credenciais de outro ambiente ou `access_token` inválido |
+| "Url de ... inválida" | Falta a chave `api.url.*` do ambiente ativo no `params` |
+| PDF / consulta / baixa não encontra o boleto | Título sem `collectionId` (boleto não emitido pelo Sentus ou emissão com erro) |
+| Extrato: "Id da conta (api.accountId) é obrigatório" | `api.accountId` não preenchido |
+| Extrato: "CNPJ da empresa não identificado" | Falta `api.cob.cnpjPag` e o `accountId` não está no formato `CNPJ-banco-agência-conta` |
+| Webhook não sincroniza | `portAuth` ausente/errado ou `collectionId` inexistente no Sentus |
+
