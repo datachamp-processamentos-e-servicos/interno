@@ -1,1 +1,190 @@
+---
+title: Banrisul
+sidebar_label: Banrisul
+---
+
+# Banrisul
+
+Este documento orienta o suporte na configuração do **portador Banrisul (código 041)** para clientes que vão usar a cobrança via API do Sentus.
+
+## Visão geral
+
+- Autenticação: **OAuth2 `client_credentials`**, escopo `boletos`.
+- Todas as chamadas levam `Authorization: Bearer <token>` e o header `bergs-beneficiario` (código do beneficiário/convênio).
+- Não usa certificado digital (mTLS): o Banrisul autentica só por `client_id` / `client_secret`.
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint Banrisul |
+|----------|-------------------|
+| Emitir (registrar) boleto | `POST /boletos` |
+| Consultar boleto | `GET /boletos/{id}` |
+| Listar boletos | `GET /boletos` |
+| Alterar boleto (vencimento / abatimento) | `PATCH /boletos/{id}` |
+| Baixar boleto | `POST /boletos/{id}/baixar` |
+| PDF do boleto | `GET /boletos/{id}/emitir` |
+| Webhook de cobrança (Banrisul → Sentus) | `POST /banrisul/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` |
+
+## Pré-requisitos (cliente)
+
+<Admonition type="warning" title="Sem estes itens não é possível configurar">
+O cliente precisa ter **convênio de cobrança ativo** no Banrisul e **acesso liberado ao Portal de Desenvolvedores**.
+</Admonition>
+
+1. **Convênio de Cobrança** (Código de Beneficiário) ativo. Se não tiver, o cliente deve procurar a agência Banrisul de relacionamento.
+2. **Cadastro no [Banrisul for Developers](https://developers.banrisul.com.br)**: solicitar login e credenciais por e-mail para `gestao_sistemas_cobranca_operacional@banrisul.com.br`. O fluxo é feito **uma vez para Sandbox e outra para Produção**.
+3. **Application** criada no Portal, com a API de Cobrança (Boletos) associada.
+4. Convênio com **permissão de uso via API** habilitada (beneficiário "sem permissão" retorna erro mesmo estando ativo).
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| `client_id` | Portal Developers → Application (gerado na criação) | `api.client_id` |
+| `client_secret` | Portal Developers → Application (**mostrado só na criação**, guardar) | `api.client_secret` |
+| Código do beneficiário (13 dígitos) | Contrato do convênio / agência | `Convênio` |
+| Agência | Contrato / agência | `Agência` |
+| Conta (7 dígitos) | Contrato / agência | `Conta` |
+| Dígito de controle (2 dígitos) | Contrato / agência | `Carteira` (usado na listagem) |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
+
+<Admonition type="info" title="Código do beneficiário">
+Formato de 13 dígitos (ex.: `0010000001088`). Na emissão o Sentus completa com zeros à esquerda; cadastre sempre os 13 dígitos.
+</Admonition>
+
+## Cadastro do portador no Sentus
+
+Campos principais do portador:
+
+| Campo | Valor |
+|-------|-------|
+| Banco | `Banrisul (041)` |
+| Convênio | Código do beneficiário (13 dígitos) |
+| Agência / Conta | Conforme contrato Banrisul |
+| Carteira | Dígito de controle (2 dígitos) |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Local de pagamento | `PAGAVEL PREFERENCIALMENTE NAS AGENCIAS BANRISUL` |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado, ver abaixo) |
+
+Juros, multa, desconto, protesto e baixa automática seguem o que o cliente combinou com o Banrisul.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção**:
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://api.banrisul.com.br/auth/oauth/v2/token
+api.url.cob=https://api.banrisul.com.br/cobranca/v1/boletos
+api.url.cobConsulta=https://api.banrisul.com.br/cobranca/v1/boletos/{id}
+api.url.cobListar=https://api.banrisul.com.br/cobranca/v1/boletos
+api.url.cobAlt=https://api.banrisul.com.br/cobranca/v1/boletos/{id}
+api.url.cobBaixa=https://api.banrisul.com.br/cobranca/v1/boletos/{id}/baixar
+api.url.cobPdf=https://api.banrisul.com.br/cobranca/v1/boletos/{id}/emitir
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.sentus.roles=boletos
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+Exemplo para **Homologação (Sandbox)**: mesmas chaves com sufixo `Hom` e host `apidev`:
+
+```properties
+api.ambiente=HOMOLOGACAO
+api.url.authHom=https://apidev.banrisul.com.br/auth/oauth/v2/token
+api.url.cobHom=https://apidev.banrisul.com.br/cobranca/v1/boletos
+api.url.cobConsultaHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}
+api.url.cobListarHom=https://apidev.banrisul.com.br/cobranca/v1/boletos
+api.url.cobAltHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}
+api.url.cobBaixaHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}/baixar
+api.url.cobPdfHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}/emitir
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.sentus.roles=boletos
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+<Admonition type="warning" title="Atenção">
+- `{id}` é literal: o Sentus substitui pelo identificador do boleto (nosso número).
+- O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção. Preencha as duas famílias se o cliente vai passar pelas duas etapas.
+- `api.sentus.roles` deve ser exatamente `boletos`.
+- Sem `api.url.cob*` (ou `*Hom`) do ambiente ativo, a operação falha com *"Url de ... inválida"*.
+</Admonition>
+
+## Ambientes
+
+| | Sandbox | Produção |
+|-|---------|----------|
+| Base API | `https://apidev.banrisul.com.br/cobranca/v1` | `https://api.banrisul.com.br/cobranca/v1` |
+| Token | `https://apidev.banrisul.com.br/auth/oauth/v2/token` | `https://api.banrisul.com.br/auth/oauth/v2/token` |
+| Convênio | Fictícios (não precisa de convênio ativo) | Convênio real ativo |
+| Credenciais | Próprias do Sandbox | **Novas**, solicitadas para Produção |
+
+Convênios de teste no Sandbox:
+
+| Código | Cenário |
+|--------|---------|
+| `0010000001088` | Beneficiário OK (sucesso) |
+| `0010000027079` | Desativado |
+| `0001000000171` | Recém-criado |
+| `0001000000252` | Sem permissão de API |
+| `0001000000333` | Inapto |
+| `0001000000414` | Inexistente (qualquer outro código também) |
+
+## Homologação em Produção
+
+Antes de operar em produção, o Banrisul exige homologação:
+
+1. Na **primeira chamada de registro em produção**, enviar `"ambiente": "T"` no payload (somente no endpoint de registro).
+2. Emitir **5 boletos com sucesso** em cenários variados que o cliente usará.
+3. Enviar requisições, retornos e **PDFs** dos 5 boletos para `gestao_sistemas_cobranca_operacional@banrisul.com.br`.
+4. Aguardar a liberação do Banrisul para operar em produção.
+
+Regras de leiaute do boleto: papel mín. 50 g/m², formato envelope (95–108 mm × 170–216 mm), fundo branco com impressão preta ou azul, e usar a linha digitável retornada pelo banco no registro.
+
+## Webhook de cobrança (opcional)
+
+Para o Sentus ser avisado de pagamentos/baixas, o Banrisul precisa chamar:
+
+```
+POST https://<host-sentus>/banrisul/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` | Chave de autenticação gerada no cadastro do portador |
+
+A URL não usa token: a validação é feita pelo trio acima. O Sentus responde `202` e sincroniza o título pelo `titulo.nosso_numero`. A URL de destino deve ser informada ao Banrisul na configuração do webhook do convênio.
+
+## Checklist do suporte
+
+- [ ] Cliente tem convênio ativo e permissão de API
+- [ ] Application criada e `client_id` / `client_secret` em mãos
+- [ ] Portador criado: banco 041, convênio de 13 dígitos, agência, conta, dígito
+- [ ] `params` preenchidos (URLs do ambiente, `grantType`, `roles=boletos`, credenciais)
+- [ ] Teste no Sandbox (convênio `0010000001088`): emitir, consultar, baixar, PDF
+- [ ] Credenciais de Produção solicitadas e portador ajustado
+- [ ] Homologação concluída (5 boletos aprovados)
+- [ ] Webhook configurado (se o cliente quiser retorno automático)
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| `401 Unauthorized` | Token expirado ou `client_id`/`client_secret` errados / de outro ambiente |
+| `404` código `A6` ("Código do beneficiário inválido ou encerrado") | Convênio incorreto, desativado ou inexistente |
+| Beneficiário "sem permissão" | Convênio sem liberação de API: acionar o Banrisul |
+| "Url de ... inválida" | Falta a chave `api.url.*` do ambiente ativo no `params` |
+| Boleto não registra em produção | Homologação (`ambiente=T`) ainda não concluída |
+
+## Contatos Banrisul
+
+- Cobrança / homologação: `gestao_sistemas_cobranca_operacional@banrisul.com.br`
+- Suporte API: `api@banrisul.com.br`
+- Portal: https://developers.banrisul.com.br
 
