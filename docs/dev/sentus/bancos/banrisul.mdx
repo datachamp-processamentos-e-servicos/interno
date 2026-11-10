@@ -84,6 +84,7 @@ api.url.cobListar=https://api.banrisul.com.br/cobranca/v1/boletos
 api.url.cobAlt=https://api.banrisul.com.br/cobranca/v1/boletos/{id}
 api.url.cobBaixa=https://api.banrisul.com.br/cobranca/v1/boletos/{id}/baixar
 api.url.cobPdf=https://api.banrisul.com.br/cobranca/v1/boletos/{id}/emitir
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
 api.sentus=true
 api.sentus.grantType=client_credentials
 api.sentus.roles=boletos
@@ -102,6 +103,7 @@ api.url.cobListarHom=https://apidev.banrisul.com.br/cobranca/v1/boletos
 api.url.cobAltHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}
 api.url.cobBaixaHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}/baixar
 api.url.cobPdfHom=https://apidev.banrisul.com.br/cobranca/v1/boletos/{id}/emitir
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
 api.sentus=true
 api.sentus.grantType=client_credentials
 api.sentus.roles=boletos
@@ -159,7 +161,7 @@ POST https://<host-sentus>/banrisul/webhooks/cobranca/{tenantId}/{portId}/{portA
 |-----------|--------|
 | `tenantId` | Identificador do tenant do cliente |
 | `portId` | ID do portador cadastrado |
-| `portAuth` | Chave de autenticação gerada no cadastro do portador |
+| `portAuth` | Valor que o suporte define em `api.webhookAuth` no `params` do portador (texto aleatório). Precisa ser idêntico ao usado na URL; se faltar ou diferir, o Sentus rejeita o webhook |
 
 A URL não usa token: a validação é feita pelo trio acima. O Sentus responde `202` e sincroniza o título pelo `titulo.nosso_numero`. A URL de destino deve ser informada ao Banrisul na configuração do webhook do convênio.
 
@@ -189,3 +191,4 @@ A URL não usa token: a validação é feita pelo trio acima. O Sentus responde 
 - Cobrança / homologação: `gestao_sistemas_cobranca_operacional@banrisul.com.br`
 - Suporte API: `api@banrisul.com.br`
 - Portal: https://developers.banrisul.com.br
+
