@@ -1,0 +1,244 @@
+---
+title: Banco do Brasil
+sidebar_label: Banco do Brasil
+---
+
+# Banco do Brasil
+
+Este documento orienta o suporte na configuração do **portador Banco do Brasil (código 001)** para clientes que vão usar a cobrança via API do Sentus.
+
+## Visão geral
+
+- Autenticação: **OAuth2 `client_credentials`**. O Sentus envia `client_id`/`client_secret` no header `Authorization: Basic` e os **escopos** (`api.sentus.roles`) separados por espaço.
+- Todas as chamadas levam `Authorization: Bearer <token>` e o parâmetro de query **`gw-dev-app-key`** (a `developer_application_key` da aplicação).
+- **Cobrança não usa certificado digital (mTLS).** Só o **Extrato** exige mTLS.
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint BB |
+|----------|-------------|
+| Emitir (registrar) boleto | `POST /boletos` |
+| Consultar boleto | `GET /boletos/{id}` |
+| Listar boletos | `GET /boletos` |
+| Alterar boleto | `PATCH /boletos/{id}` |
+| Baixar boleto | `POST /boletos/{id}/baixar` |
+| Extrato de conta corrente (mTLS) | `GET /conta-corrente/agencia/{agencia}/conta/{conta}` |
+| Webhook de cobrança (BB → Sentus) | `POST /bb/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` |
+
+:::info[Identificador do boleto]
+O `{id}` é o **nosso número de 20 dígitos**: `000` + convênio (7 dígitos) + número de controle (10 dígitos). Ex.: `00031285570000030000`.
+:::
+
+:::info[PDF do boleto]
+O BB **não tem endpoint de PDF**. O Sentus não gera PDF pelo banco: a impressão usa a linha digitável e o código de barras retornados no registro.
+:::
+
+## Pré-requisitos (cliente)
+
+:::warning[Sem estes itens não é possível configurar]
+O cliente precisa ser **cliente do BB**, ter **convênio de cobrança ativo** e uma **aplicação no Portal Developers** enviada para produção. O BB não gera credenciais de produção para quem não é cliente.
+:::
+
+1. **Convênio de cobrança ativo** (7 dígitos), contratado no BB Digital PJ (*Contratação de Serviço > Cobrança e Pagamentos > Contratar serviço*) ou com o gerente.
+   - Tipo de convênio para registro via API: **3** (Banco numera; cliente emite e expede) ou **4** (cliente numera, emite e expede). Outros tipos não registram por API, mas permitem listar, baixar e detalhar.
+   - Modalidade: **1 – Simples** ou **4 – Vinculada**.
+   - Carteira **17**.
+2. **Cadastro no [Portal Developers BB](https://apoio.developers.bb.com.br)** por uma pessoa física (CPF, e-mail e celular validados).
+3. **Aplicação** criada no Portal com a API **Cobranças** (v2).
+4. **Representante da empresa** (com poderes cadastrados no BB) para assinar o **Termo de Adesão** no envio para produção.
+
+:::tip[Layout do boleto]
+Antes de emitir em produção, o BB exige validar o layout da ficha de compensação no **Validador de Layout BB** (Portal Developers). Use os dados reais do convênio, não os fictícios do sandbox.
+:::
+
+### Passo a passo no Portal Developers
+
+1. **Criar aplicação:** *Criar Nova Aplicação* → nome, descrição e API Cobranças → *Criar*.
+2. **Credenciais de teste:** *Detalhes da aplicação > Credenciais > Gerar credenciais*. Baixar tudo (o BB **não mostra de novo**).
+3. **Testar no sandbox** (ver [Ambientes](#ambientes)).
+4. **Enviar para produção:** *Detalhes da aplicação > Enviar para produção* → CNPJ da empresa → contatos → conferir dados → assinar o **Termo de Adesão**.
+5. **Credenciais de produção:** *Credenciais > Ambiente de produção > Gerar credenciais*.
+
+:::warning[Atenção no envio para produção]
+- **Mais de um representante obrigatório** ou quem está enviando **não é representante**: a aplicação fica em *Aguardando aprovação* e os representantes precisam aprovar no Portal (sino) ou no **BB Digital PJ** (área Pendências). Sem aprovação em **30 dias**, é preciso criar outra aplicação.
+- Aplicação em estado **Aprovada** (e não *Produção*): o dono ou o time técnico deve clicar em **Finalizar envio para produção** nos detalhes da aplicação. Só depois as credenciais de produção podem ser geradas.
+- **Gerar novas credenciais desativa as anteriores.** Só a mais recente vale. Se o cliente gerar de novo, atualize o `params` do portador.
+- O Termo de Adesão é assinado **a cada aplicação** enviada para produção.
+:::
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| `developer_application_key` | Portal → Aplicação → Credenciais | `api.appKey` |
+| `client_id` | Portal → Aplicação → Credenciais | `api.client_id` |
+| `client_secret` | Portal → Aplicação → Credenciais (**mostrado só na geração**) | `api.client_secret` |
+| Número do convênio (7 dígitos) | Contrato do convênio | `Convênio` |
+| Carteira (17) | Contrato do convênio | `Carteira` |
+| Variação da carteira (ex.: 19, 35) | Contrato do convênio | `Complemento` |
+| Agência (sem dígito) | Contrato / BB Digital PJ | `Agência` |
+| Conta (sem dígito) | Contrato / BB Digital PJ | `Conta` |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
+
+
+## Cadastro do portador no Sentus
+
+| Campo | Valor |
+|-------|-------|
+| Banco | `Banco do Brasil (001)` |
+| Convênio | Número do convênio (7 dígitos) |
+| Agência / Conta | Conforme contrato (sem dígito) |
+| Carteira | `17` |
+| Complemento | Variação da carteira |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado, ver abaixo) |
+
+Juros, multa, desconto, protesto e negativação seguem o que o cliente combinou com o BB.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção**:
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://oauth.bb.com.br/oauth/token
+api.url.cob=https://api.bb.com.br/cobrancas/v2/boletos
+api.url.cobConsulta=https://api.bb.com.br/cobrancas/v2/boletos/{id}
+api.url.cobListar=https://api.bb.com.br/cobrancas/v2/boletos
+api.url.cobAlt=https://api.bb.com.br/cobrancas/v2/boletos/{id}
+api.url.cobBaixa=https://api.bb.com.br/cobrancas/v2/boletos/{id}/baixar
+api.url.extrato=https://extratos.mtls.api.bb.com.br/v2
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.sentus.roles=cobrancas.boletos-requisicao cobrancas.boletos-info
+api.appKey=COLE_A_DEVELOPER_APPLICATION_KEY
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+Exemplo para **Homologação (Sandbox)**: mesmas chaves com sufixo `Hom` e hosts `hm`:
+
+```properties
+api.ambiente=HOMOLOGACAO
+api.url.authHom=https://oauth.hm.bb.com.br/oauth/token
+api.url.cobHom=https://api.hm.bb.com.br/cobrancas/v2/boletos
+api.url.cobConsultaHom=https://api.hm.bb.com.br/cobrancas/v2/boletos/{id}
+api.url.cobListarHom=https://api.hm.bb.com.br/cobrancas/v2/boletos
+api.url.cobAltHom=https://api.hm.bb.com.br/cobrancas/v2/boletos/{id}
+api.url.cobBaixaHom=https://api.hm.bb.com.br/cobrancas/v2/boletos/{id}/baixar
+api.url.extratoHom=https://extratos.mtls.api.hm.bb.com.br/v2
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.sentus.roles=cobrancas.boletos-requisicao cobrancas.boletos-info
+api.appKey=COLE_A_APP_KEY_DE_TESTE
+api.client_id=COLE_O_CLIENT_ID_DE_TESTE
+api.client_secret=COLE_O_CLIENT_SECRET_DE_TESTE
+```
+
+:::warning[Atenção]
+- `{id}` é literal: o Sentus substitui pelo nosso número.
+- O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção. Preencha as duas famílias se o cliente vai passar pelas duas etapas.
+- `api.sentus.roles` leva os escopos **separados por espaço**. Os escopos precisam estar **habilitados na aplicação** do Portal; se não estiverem, o BB recusa o token.
+- A `appKey` e as credenciais de **teste e produção são diferentes**. Não misture.
+- Sem `api.appKey`, a emissão falha com *"App Key não configurada para o ambiente"*.
+- Sem `api.url.cob*` do ambiente ativo, a operação falha com *"Url de ... inválida"*.
+- O extrato só funciona com o **certificado mTLS** do cliente (`.crt` e `.key` no zip do portador) e a URL `api.url.extrato`.
+:::
+
+## Ambientes
+
+| | Sandbox (HM) | Produção |
+|-|--------------|----------|
+| API Cobrança | `https://api.hm.bb.com.br/cobrancas/v2` | `https://api.bb.com.br/cobrancas/v2` |
+| Token | `https://oauth.hm.bb.com.br/oauth/token` | `https://oauth.bb.com.br/oauth/token` |
+| Extrato (mTLS) | `https://extratos.mtls.api.hm.bb.com.br/v2` | `https://extratos.mtls.api.bb.com.br/v2` |
+| Convênio | Fictício | Convênio real ativo |
+| Credenciais | Próprias do teste | **Novas**, geradas após o envio para produção |
+
+Dados fictícios do sandbox (BB):
+
+| Campo | Valor |
+|-------|-------|
+| Convênio | `3128557` |
+| Carteira / variação | `17` / `35` |
+| Modalidade | `1` ou `4` |
+| CNPJ de pagador | `74910037000193`, `98959112000179`, `92862701000158` |
+| CPF de pagador | `97965940132`, `96050176876`, `71943984190` |
+| CNPJ alfanumérico | `CNPJJOAO180280`, `MHWXJ9YFDPJ217`, `X6JSIZ13MI0V80` |
+
+:::info[Sandbox]
+No sandbox use **apenas** os CNPJs/CPFs acima como pagador. Em produção, use os dados reais.
+:::
+
+## Regras do BB que o suporte precisa conhecer
+
+| Regra | Detalhe |
+|-------|---------|
+| Alterar e baixar | Só são aceitos **30 minutos depois** do registro. Antes disso o BB retorna erro |
+| Alterar | **Uma alteração por chamada** |
+| Consultar | Consultas repetidas do mesmo boleto em até **30 segundos** voltam com a resposta anterior |
+| Listar | Até **300 registros** por chamada (paginação por índice). Combinação de filtros sem resultado retorna **404** |
+| Seu número | Até **15 caracteres**, maiúsculas, hífen e apóstrofo só entre alfanuméricos |
+| Campo de utilização do beneficiário | Até **25 caracteres**, maiúsculas |
+| Mensagem do boleto | Até **165 caracteres** (3 linhas de 55), sem quebra de linha |
+| Extrato | Períodos de até **31 dias** por chamada (o Sentus divide), até **5 anos** para trás, 120 registros por página; **404** = sem lançamentos |
+
+## Webhook de cobrança (opcional)
+
+O evento é a **baixa operacional** (pagamento) de um boleto. O Sentus recebe em:
+
+```
+POST https://<host-sentus>/bb/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` | Valor que o suporte define em `api.webhookAuth` no `params` do portador. Precisa ser idêntico ao da URL; se faltar ou diferir, o Sentus rejeita |
+
+O BB envia uma **lista** de notificações; o Sentus sincroniza cada título pelo campo `id` (nosso número) e responde `200`.
+
+### Cadastro do evento no BB
+
+1. A aplicação precisa estar em **Produção** (a aba *Eventos* só aparece nesse estado).
+2. Portal Developers → aplicação → card **Webhook** → **Eventos** → **Cadastrar novo evento**.
+3. Informar o **convênio** (identificador), a **URL do servidor** (a do Sentus acima) e um e-mail → **Salvar**.
+
+## Checklist do suporte
+
+<div><label><input type="checkbox" /> Cliente tem convênio ativo (tipo 3 ou 4, modalidade 1 ou 4, carteira 17)</label></div>
+<div><label><input type="checkbox" /> Aplicação criada no Portal Developers com a API Cobranças</label></div>
+<div><label><input type="checkbox" /> <code>appKey</code>, <code>client_id</code> e <code>client_secret</code> de teste em mãos</label></div>
+<div><label><input type="checkbox" /> Portador criado: banco 001, convênio, agência, conta, carteira 17, variação em Complemento</label></div>
+<div><label><input type="checkbox" /> <code>params</code> preenchidos (URLs, <code>grantType</code>, escopos, <code>appKey</code>, credenciais)</label></div>
+<div><label><input type="checkbox" /> Teste no sandbox: emitir, consultar, listar (alterar e baixar só após 30 min)</label></div>
+<div><label><input type="checkbox" /> Layout do boleto validado no Validador de Layout BB</label></div>
+<div><label><input type="checkbox" /> Envio para produção concluído (Termo assinado, estado <em>Produção</em>)</label></div>
+<div><label><input type="checkbox" /> Credenciais de produção geradas e portador ajustado para <code>Ativo</code></label></div>
+<div><label><input type="checkbox" /> Webhook cadastrado no BB (se o cliente quiser retorno automático)</label></div>
+<div><label><input type="checkbox" /> Extrato: certificado mTLS enviado ao BB e <code>.crt</code>/<code>.key</code> no zip do portador (se o cliente usar extrato)</label></div>
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| `400` ao gerar o token | Escopo não habilitado na aplicação, escopos mal separados (espaço) ou credencial de outro ambiente |
+| `401 Unauthorized` | Token expirado, credenciais antigas (foram regeneradas) ou `appKey` de outro ambiente |
+| "App Key não configurada" | Falta `api.appKey` no `params` |
+| "Url de ... inválida" | Falta a chave `api.url.*` do ambiente ativo |
+| Erro ao alterar/baixar logo após emitir | O BB só aceita depois de **30 minutos** |
+| `404` na listagem | Filtros sem resultado (não é falha de conexão) |
+| Boleto recusado em produção com dados de teste | CNPJ/CPF fictícios do sandbox não valem em produção |
+| Credenciais de produção indisponíveis | Aplicação em *Aprovada* (finalizar envio) ou *Aguardando aprovação* (falta assinatura) |
+| Webhook não chega | Evento não cadastrado, aplicação fora de *Produção*, mTLS/porta no servidor ou `portAuth` diferente de `api.webhookAuth` |
+
+## Contatos Banco do Brasil
+
+- Portal: https://apoio.developers.bb.com.br
+- Suporte técnico: https://apoio.developers.bb.com.br/ajuda/suporte-tecnico
+- Convênio, representantes e liberações manuais: gerente de relacionamento ou gerente de Cash do cliente
+- Aprovação de pendências: BB Digital PJ (área Pendências)
