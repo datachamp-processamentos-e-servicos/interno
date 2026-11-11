@@ -1,0 +1,290 @@
+---
+title: Bradesco
+sidebar_label: Bradesco
+---
+
+# Bradesco
+
+Este documento orienta o suporte na configuração do **portador Bradesco (código 237)** para clientes que vão usar a cobrança via API do Sentus.
+
+## Visão geral
+
+- Autenticação: **OAuth2 `client_credentials` com mTLS**. O token é pedido com `client_id`/`client_secret` **e** o certificado do cliente.
+- **Todas as chamadas usam mTLS**, não só o token. Por isso o certificado (`.crt` e `.key`) é obrigatório no portador.
+- O token vale **1 hora**. O Sentus reaproveita o token: gerar token demais pode bloquear o cliente no Bradesco.
+- Chamadas levam `Authorization: Bearer <token>`.
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint Bradesco |
+|----------|-------------------|
+| Emitir (registrar) boleto | `POST /boleto/cobranca-registro/v1/cobranca` |
+| Consultar boleto / 2ª via | `POST /boleto/cobranca-consulta/v1/consultar` |
+| Listar boletos **liquidados** | `POST /boleto/cobranca-lista/v1/listar` |
+| Alterar boleto | `PUT /boleto/cobranca-altera/v1/alterar` |
+| Baixar boleto | `POST /boleto/cobranca-baixa/v1/baixar` |
+| Extrato de conta corrente | `GET /v1/fornecimento-extratos-contas/extratos` (produto *Saldo e Extrato*, ver [Extrato](#extrato-opcional)) |
+| Webhook de cobrança (Bradesco → Sentus) | `POST /bradesco/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` |
+
+:::info[Sem PDF pelo banco]
+O Bradesco não devolve o PDF do boleto. A consulta devolve os dados do título e, a partir deles, o boleto (2ª via) é montado.
+:::
+
+:::info[Identificador do boleto]
+O boleto é identificado pelo **nosso número sem dígito** (até 11 posições). O Sentus **não envia** o nosso número na emissão: o Bradesco gera e devolve. O "seu número" (`nuCliente`) aceita até 25 caracteres.
+:::
+
+## Pré-requisitos (cliente)
+
+:::warning[Sem estes itens não é possível configurar]
+O cliente precisa ser **pessoa jurídica Bradesco**, ter **contrato de cobrança ativo** com a funcionalidade **175 – Registro via Webservice** habilitada e já ter acessado o **Bradesco Net Empresa** ao menos uma vez.
+:::
+
+1. **Contrato de Cobrança** Bradesco ativo.
+2. **Indicador 175 (Registro via Webservice)** habilitado: o cliente pede ao **gerente** do banco.
+3. **Primeiro acesso ao Bradesco Net Empresa** feito (obrigatório para o cliente ser reconhecido na plataforma).
+4. **Certificado digital A1** emitido por Autoridade Certificadora, com **razão social + CNPJ no CN**, validade de **2 meses a 3 anos** (produção). No sandbox basta um autoassinado.
+5. **Cadastro no [Portal Bradesco Developers](https://developers.bradesco.com.br)** (organização com CNPJ do cliente).
+
+### Passo a passo no Portal Developers
+
+1. **Cadastrar a organização:** *Entrar/Registrar > Inscreva-se* (dados do administrador, nome da organização) → e-mail de ativação (pode levar até 24 h) → informar CNPJ e telefone.
+2. **Assinar o produto Cobrança:** na página do produto, *Inscrever-se* → escolher o plano (**Sandbox** ou **Produção**) e o time.
+   - Sandbox: aprovação **automática**.
+   - Produção: aprovada pelo **Gestor de APIs** em cerca de **2 dias úteis**.
+3. **Registrar aplicação:** *Registrar Aplicação* → nome, descrição, time, assinatura e os **recursos** que vai usar (emitir, baixar, alterar, consultar, listar, webhook...).
+4. **Solicitar credencial:** *Solicitar Credencial* → Tipo **Modelo de autenticação MTLS** → operação **Nova credencial** → CNPJ e nome da empresa → anexar o **certificado público**.
+5. Aguardar cerca de **10 minutos** e ver `client_id` / `client_secret` em *Visualizar credencial*.
+
+:::warning[Atenção]
+- O **`client_secret` fica visível por apenas 3 dias**. Se perder, é preciso gerar nova credencial.
+- Anexe só o **corpo** do certificado público (formatos `.pem`, `.cer` ou `.crt`), começando em `BEGIN CERTIFICATE`. Nunca envie a chave privada.
+- Cada recurso novo (webhook, extrato, etc.) pode usar a mesma credencial: em *Ver Registro* reaproveite, ou use *Solicitar Credencial* para outra.
+- O certificado usado no Sentus tem que ser **o mesmo** anexado na credencial, e do **mesmo ambiente**.
+:::
+
+### Certificado autoassinado (sandbox)
+
+```bash
+openssl req -new -x509 -sha256 -newkey rsa:2048 -nodes -keyout parceiro.homologacao.key.pem -days 365 -out parceiro.homologacao.cert.pem -subj "/CN=RAZAOSOCIAL:CNPJ/C=BR/ST=SP/O=RAZAOSOCIAL"
+```
+
+Troque `RAZAOSOCIAL` e `CNPJ` pelos dados do cliente. Anexe no Portal o `cert.pem` (público) e guarde o `key.pem` (privado) para o Sentus.
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| `client_id` | Portal → Aplicação → Visualizar credencial | `api.client_id` |
+| `client_secret` | Mesma tela (**visível só 3 dias**) | `api.client_secret` |
+| Certificado público `.crt` + chave privada `.key` | Certificadora (A1) / openssl no sandbox | zip no **conteúdo** do portador |
+| Carteira / produto (ex.: `09`) | Contrato de cobrança | `Carteira` |
+| Agência (4 dígitos, sem DV) | Contrato / Net Empresa | `Agência` |
+| Conta (até 7 dígitos, sem DV) | Contrato / Net Empresa | `Conta` |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
+
+:::tip[Certificado no Sentus]
+O Sentus lê do zip do portador o arquivo que contém `.crt` e o que contém `.key` no nome. Monte o zip com **somente** os dois arquivos (certificado e chave privada em PEM).
+:::
+
+## Cadastro do portador no Sentus
+
+| Campo | Valor |
+|-------|-------|
+| Banco | `Bradesco (237)` |
+| Agência / Conta | Conforme contrato, sem dígito |
+| Carteira | Código do produto (ex.: `09`) |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado, ver abaixo) |
+| Conteúdo (zip) | Certificado `.crt` e chave `.key` |
+
+A **negociação** enviada ao banco é montada pelo Sentus: **agência (4) + zeros (7) + conta (7)**. Na consulta, baixa e alteração o banco usa agência (4) + conta (7).
+
+Juros, multa, desconto, protesto e negativação seguem o contrato do cliente.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção**:
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://openapi.bradesco.com.br/auth/server-mtls/v2/token
+api.url.cob=https://openapi.bradesco.com.br/boleto/cobranca-registro/v1/cobranca
+api.url.cobConsulta=https://openapi.bradesco.com.br/boleto/cobranca-consulta/v1/consultar
+api.url.cobListar=https://openapi.bradesco.com.br/boleto/cobranca-lista/v1/listar
+api.url.cobAlt=https://openapi.bradesco.com.br/boleto/cobranca-altera/v1/alterar
+api.url.cobBaixa=https://openapi.bradesco.com.br/boleto/cobranca-baixa/v1/baixar
+api.url.extrato=https://openapi.bradesco.com.br/v1/fornecimento-extratos-contas/extratos
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+Exemplo para **Homologação (Sandbox)**: mesmas chaves com sufixo `Hom` e host `openapisandbox.prebanco.com.br`:
+
+```properties
+api.ambiente=HOMOLOGACAO
+api.url.authHom=https://openapisandbox.prebanco.com.br/auth/server-mtls/v2/token
+api.url.cobHom=https://openapisandbox.prebanco.com.br/boleto/cobranca-registro/v1/cobranca
+api.url.cobConsultaHom=https://openapisandbox.prebanco.com.br/boleto/cobranca-consulta/v1/consultar
+api.url.cobListarHom=https://openapisandbox.prebanco.com.br/boleto/cobranca-lista/v1/listar
+api.url.cobAltHom=https://openapisandbox.prebanco.com.br/boleto/cobranca-altera/v1/alterar
+api.url.cobBaixaHom=https://openapisandbox.prebanco.com.br/boleto/cobranca-baixa/v1/baixar
+api.url.extratoHom=https://openapisandbox.prebanco.com.br/v1/fornecimento-extratos-contas/extratos
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+```
+
+:::warning[Atenção]
+- O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção. Preencha as duas famílias se o cliente vai passar pelas duas etapas.
+- No Bradesco **o id do boleto vai no corpo da requisição**, não na URL. As URLs de cobrança **não levam `{id}`**.
+- A **listagem** do Sentus traz boletos **liquidados** (`cobranca-lista`). Não confunda com `cobranca-pendente` (pendentes) nem `cobranca-baixado-consulta` (baixados), que o Sentus não usa.
+- URLs conferidas na *Collection - API Cobrança* do Portal (aba Documentação, exige login).
+- Sem a chave `api.url.*` do ambiente ativo, a operação falha com *"URL ... não configurada"* ou *"URL ... inválida"*.
+- Sem o `.crt`/`.key` no zip do portador, nenhuma chamada funciona (nem o token).
+:::
+
+## Ambientes
+
+| | Sandbox | Produção |
+|-|---------|----------|
+| Host da API | `https://openapisandbox.prebanco.com.br` | `https://openapi.bradesco.com.br` |
+| Token | `.../auth/server-mtls/v2/token` | `.../auth/server-mtls/v2/token` |
+| Certificado do cliente | Autoassinado | **A1 de Autoridade Certificadora** |
+| Assinatura do produto | Automática | Aprovada pelo Gestor de APIs (~2 dias úteis) |
+| Credenciais | Próprias do sandbox | **Novas**, geradas após a assinatura de produção |
+
+:::warning[Certificados do Bradesco vencem]
+O cliente (Sentus) precisa **confiar** nos certificados do Bradesco. Datas de expiração publicadas no Portal: produção `openapi.bradesco.com.br` em **04/04/2027**, sandbox `openapisandbox.prebanco.com.br` em **29/04/2027**. Baixe os novos em *Certificados* no Portal antes do vencimento.
+:::
+
+## Regras do Bradesco que o suporte precisa conhecer
+
+| Regra | Detalhe |
+|-------|---------|
+| Indisponibilidade | Entre **00h00 e 03h00** as APIs podem ficar fora do ar (processamento batch) |
+| Textos | Só letras A–Z, números e espaço. Sem acento nem `. - /` e demais símbolos |
+| Juros / multa / desconto | Informe **valor ou percentual**, nunca os dois |
+| Casas decimais | Valores e percentuais com até **2 casas**; excedente é **truncado**, não arredondado |
+| Multa | Cobrada uma única vez, sempre em percentual sobre o valor do título (conforme manual) |
+| Alterar | Campos-chave **não mudam**: carteira, negociação, nosso número, CPF/CNPJ do pagador, data de emissão e valor |
+| Baixar | Processada on-line: impede o pagamento no Bradesco e em outros bancos |
+| Protesto / negativação | Protesto: mínimo 3 dias úteis ou 5 corridos. Negativação: mínimo 1 dia útil ou 3 corridos (conforme contrato) |
+| Extrato | Até 10 anos de histórico, janelas de 31 dias; só movimentos realizados (sem saldo anterior e futuros) |
+
+## Extrato (opcional)
+
+O extrato é outro produto do Portal: **Saldo e extrato**. Usa o **mesmo token mTLS** da cobrança (mesmo endpoint de token, mesmo certificado).
+
+| Ambiente | Método | URL (usar em `api.url.extrato` / `api.url.extratoHom`) |
+|----------|--------|------------------------------------------------------|
+| Sandbox | `GET` | `https://openapisandbox.prebanco.com.br/v1/fornecimento-extratos-contas/extratos` |
+| Produção | `GET` | `https://openapi.bradesco.com.br/v1/fornecimento-extratos-contas/extratos` |
+
+**O que fazer no Portal**
+1. Na página do produto **Saldo e extrato**, *Inscrever-se* (plano Sandbox ou Produção) e *Registrar Aplicação* com o recurso de extratos.
+2. **Credencial:** o Portal permite reaproveitar a mesma credencial (`client_id`/`client_secret`) em vários recursos da mesma aplicação (*Ver Registro*). Também dá para pedir outra com *Solicitar Credencial*. Se reaproveitar, o Sentus usa o mesmo `client_id`/`client_secret` do portador de cobrança.
+3. Pré-requisito de produção: ser **correntista PJ** Bradesco (não exige indicador 175 nem Net Empresa; isso é só da cobrança).
+
+**Parâmetros enviados pelo Sentus:** `agencia` (4 dígitos, sem DV), `conta` (7 dígitos, sem DV), `dataInicio` e `dataFim` (`ddMMyyyy`) e `tipo=cc`.
+
+| Regra | Detalhe |
+|-------|---------|
+| Limite | Até **5.000 transações** por requisição (o Sentus divide o período em janelas de 31 dias) |
+| Histórico | Até **10 anos** |
+| Tipos de lançamento | Últimos (D-1), do dia (D0), futuros e históricos (D-2 em diante). O Sentus descarta saldo anterior e futuros |
+| Contas aceitas | Só **conta corrente e poupança**. Contas vinculadas à instituição financeira "11-02" não são processadas |
+
+:::warning[Poupança]
+O Sentus envia `tipo=cc` fixo, então **conta poupança não é consultada** pelo extrato.
+:::
+
+## Webhook de cobrança (opcional)
+
+O evento é a **liquidação** (pagamento) do boleto. O Bradesco chama o Sentus em:
+
+```
+POST https://<host-sentus>/bradesco/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` | Valor que o suporte define em `api.webhookAuth` no `params` do portador. Precisa ser idêntico ao da URL; se faltar ou diferir, o Sentus rejeita |
+
+O Bradesco **não envia credenciais**: a validação é feita pelo trio da URL. O Sentus responde `200` e sincroniza o título pelo `nossoNumero` do corpo (`tipoEvento` `P` = pagamento).
+
+### Cadastro do webhook no Bradesco
+
+O cadastro é feito por uma **API** (recurso *Cobrança – Cadastro de Webhook*), com o mesmo certificado/token da cobrança. Esse recurso precisa estar vinculado à aplicação no Portal.
+
+| Ambiente | Método | URL |
+|----------|--------|-----|
+| Sandbox | `POST` | `https://openapisandbox.prebanco.com.br/boleto/cobranca-webhook/v1/cadastrar` |
+| Produção | `POST` | `https://openapi.bradesco.com.br/boleto/cobranca-webhook/v1/executar` |
+
+O final do caminho é **diferente** entre sandbox (`cadastrar`) e produção (`executar`).
+
+```json
+{
+  "tipoAviso": 0,
+  "documento": { "cpfCnpj": "999999999", "filial": "9999", "controle": "99" },
+  "utilizaWebhook": "S",
+  "tipoCadastro": "I",
+  "versaoLayout": "1",
+  "urlEnvio": "https://<host-sentus>/bradesco/webhooks/cobranca/{tenantId}/{portId}/{portAuth}"
+}
+```
+
+`tipoCadastro` `I` é inclusão; o mesmo recurso também altera, consulta e exclui. `documento` é o CNPJ do beneficiário separado em raiz (9), filial (4) e controle (2).
+
+:::warning[Certificado do webhook]
+O Bradesco publica um certificado para o **Webhook Cobrança** (`boletosliquidados.bradesco.com.br`, expira em 07/10/2027). Para renovar o certificado do webhook do cliente: e-mail para `governancaapis@bradesco.com.br`, assunto `RNV-WHK-PRD | NOME DA API | RAZÃO SOCIAL | CNPJ | URL`, com a chave pública (`.cer`/`.crt` em `.zip` ou `.pem`, validade de 4 meses a 3 anos).
+:::
+
+## Checklist do suporte
+
+<div><label><input type="checkbox" /> Cliente é PJ Bradesco com contrato de cobrança e indicador 175 habilitado</label></div>
+<div><label><input type="checkbox" /> Cliente já acessou o Bradesco Net Empresa</label></div>
+<div><label><input type="checkbox" /> Organização, assinatura do produto Cobrança e aplicação criadas no Portal Developers</label></div>
+<div><label><input type="checkbox" /> Certificado gerado (autoassinado no sandbox, A1 em produção) e chave privada guardada</label></div>
+<div><label><input type="checkbox" /> Credencial mTLS criada; <code>client_id</code> e <code>client_secret</code> guardados (secret some em 3 dias)</label></div>
+<div><label><input type="checkbox" /> Portador criado: banco 237, agência, conta, carteira, zip com <code>.crt</code>/<code>.key</code></label></div>
+<div><label><input type="checkbox" /> <code>params</code> preenchidos (URLs do ambiente, <code>grantType</code>, credenciais)</label></div>
+<div><label><input type="checkbox" /> Teste no sandbox: emitir, consultar, alterar e baixar</label></div>
+<div><label><input type="checkbox" /> Assinatura de produção aprovada e credencial de produção gerada com o certificado A1</label></div>
+<div><label><input type="checkbox" /> Portador ajustado para <code>Ativo</code> com as URLs de produção</label></div>
+<div><label><input type="checkbox" /> Webhook cadastrado e <code>api.webhookAuth</code> igual ao <code>portAuth</code> da URL (se o cliente quiser retorno automático)</label></div>
+<div><label><input type="checkbox" /> Data de vencimento do certificado do cliente anotada para a renovação</label></div>
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| `401` *"SSL with client authentication is required"* | Certificado diferente do usado na credencial, ou mTLS mal configurado (zip sem `.crt`/`.key`) |
+| `401` *"The given client credentials were not valid"* | `client_id`/`client_secret` errados ou de outro ambiente |
+| `401` *"Acesso não autorizado"* | Token sem permissão para o recurso (escopo) |
+| `401` *"Falha na autenticação mTLS"* | Requisição sem o par de certificados |
+| `403` | Recurso não vinculado à aplicação no Portal Developers |
+| `400` com `errosValidacao` | Campo obrigatório ausente ou com tamanho/formato inválido |
+| `412` com `causa` `CBTTxxxx` | Regra de negócio do Bradesco (ver códigos abaixo) |
+| `429` | Excesso de requisições (ou muitos tokens gerados) |
+| Falha entre 00h e 03h | Janela de manutenção do Bradesco |
+| *"URL ... não configurada"* | Falta a chave `api.url.*` do ambiente ativo |
+
+Códigos `CBTT` frequentes: `CBTT0108` nosso número inválido, `CBTT0401` situação do título inválida para alteração, `CBTT0403` usuário não autorizado, `CBTT0412` conta do produto inválida, `CBTT0428` espécie inválida, `CBTT0552` título inexistente para o contrato, `CBTT0939` CPF/CNPJ do pagador não pode ser alterado.
+
+## Contatos Bradesco
+
+- Portal: https://developers.bradesco.com.br (aba **Suporte** > *Registrar novo chamado*; informar o **ID da Organização**)
+- Renovação de certificado de credencial e dúvidas de API: `suporte.api@bradesco.com.br` (assunto `RNV-PRD | NOME DA API | NOME DA EMPRESA | CNPJ` ou `DUV-PRD | NOME DA API | RAZÃO SOCIAL | CNPJ`)
+- Certificado de webhook: `governancaapis@bradesco.com.br`
+- Erros de regra de negócio: `suportetransacoes_api@bradesco.com.br`
+- Indicador 175 e contrato de cobrança: gerente do cliente
