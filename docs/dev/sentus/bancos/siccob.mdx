@@ -1,0 +1,219 @@
+# Sicoob
+
+Este documento orienta o suporte na configuração do **portador Sicoob (código 756)** para clientes que vão usar a cobrança via API do Sentus (API **Cobrança Bancária V3**).
+
+## Visão geral
+
+- Autenticação: **OAuth2 `client_credentials` com mTLS**. O token é pedido com o **`client_id`** da aplicação e o **certificado digital** do cooperado.
+- **Todas as chamadas usam mTLS**, não só o token. O certificado (`.crt` e `.key`) é obrigatório no portador.
+- O token vale poucos minutos (o Sicoob orienta emitir dentro de uma janela de **5 minutos**).
+- Todas as chamadas levam `Authorization: Bearer <token>` e o header **`client_id`**.
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint Sicoob (base `/cobranca-bancaria/v3`) |
+|----------|------------------------------------------------|
+| Emitir (registrar) boleto | `POST /boletos` |
+| Consultar boleto | `GET /boletos?numeroCliente&codigoModalidade&linhaDigitavel` |
+| Listar boletos do pagador | `GET /pagadores/{numeroCpfCnpj}/boletos` |
+| Alterar boleto | `PATCH /boletos/{id}` |
+| Baixar boleto | `POST /boletos/{id}/baixar` |
+| Extrato de conta corrente | `GET /conta-corrente/v4/extrato/{mes}/{ano}` (API *Conta Corrente*) |
+| Webhook de cobrança (Sicoob → Sentus) | `POST /sicoob/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` |
+
+:::info[Identificador do boleto]
+O `{id}` é o **nosso número**. A consulta usa a **linha digitável**.
+:::
+
+:::info[Sem PDF pelo banco]
+O Sentus não pede PDF ao Sicoob (envia `gerarPdf=false`). O boleto é impresso a partir dos dados retornados no registro.
+:::
+
+## Pré-requisitos (cliente)
+
+:::warning[Sem estes itens não é possível configurar]
+O cliente precisa ser **cooperado Sicoob**, ter **contrato de cobrança** na cooperativa e um **certificado digital A1 ICP-Brasil (e-CNPJ, ou e-CPF para pessoa física)**.
+:::
+
+1. **Contrato de cobrança** com a cooperativa. Sem ele o Sicoob responde *"Associado não possui cadastro de Beneficiário"*.
+2. **Boleto híbrido (com Pix):** pedir à cooperativa a habilitação no cadastro. Sem ela o Sicoob responde *"Beneficiário não habilitado para utilizar o Pix"*.
+3. **Certificado digital A1** padrão ICP-Brasil, emitido para o **CNPJ do cooperado** (ou CPF, se PF), com *Uso Avançado da Chave = Autenticação de Cliente* (`1.3.6.1.5.5.7.3.2`).
+4. **Cadastro no [Portal Developers Sicoob](https://developers.sicoob.com.br/portal/)** e **aplicativo de produção** com a API *Cobrança Bancária*.
+5. Acesso ao **App Sicoob** (Mobile Banking) do titular da conta, para aprovar a criação do aplicativo.
+
+### Passo a passo no Portal Developers
+
+1. **Cadastro:** menu *Cadastro* → preencher dados → confirmar o e-mail.
+2. **Preparar o certificado:** exportar só a **chave pública** do certificado em `.pem`, `.crt` ou `.cer` (ver abaixo).
+3. **Criar o aplicativo:** *Meus Aplicativos > Nova Aplicação*.
+   - Entrar com **cooperativa, conta-corrente (ou chave de acesso) e senha do App Sicoob** para confirmar.
+   - Digitar o **código de verificação** que chega no App Sicoob.
+   - Percorrer as etapas *Informações, Segurança, APIs, Confirmação, Aplicativo*: marcar a API **Cobrança Bancária** (e **Conta Corrente**, se for usar extrato) e **anexar o certificado público**.
+4. Pegar o **`client_id`** e as URLs de produção em *Meus Aplicativos*.
+
+:::warning[Atenção]
+- Anexe **só a chave pública** no Portal. **Nunca envie a chave privada ao Sicoob**: se enviar, o Sicoob exige gerar um novo par e o cliente pode ter de pagar novo certificado.
+- O arquivo `.pem` deve ter só `BEGIN CERTIFICATE`. Se tiver `BEGIN RSA PRIVATE KEY`, remova.
+- Se o certificado estiver em `.pfx`: `openssl pkcs12 -in certificado.pfx -nokeys -out certificado.pem`.
+- Com **mais de um preposto** na conta, qualquer alteração no aplicativo volta ao fluxo de aprovação (status *Pendente*) até aprovarem no App Sicoob ou no Sicoobnet Empresarial.
+- Se o cadastro do cliente estiver desatualizado, o Portal pede atualização. Se a criação demorar demais, aparece *"Erro ao obter os metadados do cooperado"*: é preciso recomeçar.
+- Não chegou o código no App? Em *Notificação* do app, desligue e ligue as notificações (e confira as do celular).
+- **Restrição por IP (opcional):** se o cliente ativar, cadastre o **IP público de saída do servidor do Sentus** (incluindo contingência). IP de outra origem é recusado.
+:::
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| `client_id` | Portal → Meus Aplicativos | `api.client_id` |
+| Certificado público `.crt` + chave privada `.key` | Certificadora (A1) | zip no **conteúdo** do portador |
+| Número do cliente / contrato de cobrança | Portal de atendimento da cooperativa ou gerente | `Convênio` |
+| Modalidade (`1` = Simples com registro) | Contrato de cobrança | `Carteira` |
+| Agência | Cooperativa | `Agência` |
+| Conta corrente (sem dígito) | Cooperativa | `Conta` |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
+
+:::info[Número do cliente]
+O "número do contrato" é o mesmo **código do cliente/cedente** que aparece no portal de atendimento da cooperativa. O gerente informa. Se o Sicoob responder *"O número do contrato deve ser o mesmo número do cliente"*, o valor do Convênio está errado.
+:::
+
+:::tip[Certificado no Sentus]
+O Sentus lê do zip do portador o arquivo com `.crt` e o com `.key` no nome. Monte o zip com **somente** esses dois arquivos (PEM). O certificado tem de ser o **mesmo** anexado ao aplicativo no Portal.
+:::
+
+## Cadastro do portador no Sentus
+
+| Campo | Valor |
+|-------|-------|
+| Banco | `Sicoob (756)` |
+| Convênio | Número do cliente / contrato de cobrança |
+| Agência / Conta | Cooperativa e conta corrente (sem dígito) |
+| Carteira | Modalidade (`1` = Simples com registro) |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado, ver abaixo) |
+| Conteúdo (zip) | Certificado `.crt` e chave `.key` |
+
+Juros, multa, desconto, protesto e negativação seguem o combinado do cliente com a cooperativa.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção**:
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://auth.sicoob.com.br/auth/realms/cooperado/protocol/openid-connect/token
+api.url.cob=https://api.sicoob.com.br/cobranca-bancaria/v3/boletos
+api.url.cobConsulta=https://api.sicoob.com.br/cobranca-bancaria/v3/boletos
+api.url.cobListar=https://api.sicoob.com.br/cobranca-bancaria/v3/pagadores/{id}/boletos
+api.url.cobAlt=https://api.sicoob.com.br/cobranca-bancaria/v3/boletos/{id}
+api.url.cobBaixa=https://api.sicoob.com.br/cobranca-bancaria/v3/boletos/{id}/baixar
+api.url.extrato=https://api.sicoob.com.br/conta-corrente/v4/extrato/{mes}/{ano}
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=client_credentials
+api.client_id=COLE_O_CLIENT_ID
+```
+
+Para **Homologação (Sandbox)**, use as mesmas chaves com sufixo `Hom` e a base `https://sandbox.sicoob.com.br/sicoob/sandbox/cobranca-bancaria/v3` (extrato: `.../sandbox/conta-corrente/v4/extrato/{mes}/{ano}`).
+
+:::warning[Atenção]
+- O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção.
+- `{id}` é literal: o Sentus troca pelo nosso número (alterar, baixar) ou pelo CPF/CNPJ do pagador (listar). No extrato, `{mes}` e `{ano}` são trocados pelo Sentus.
+- No Sicoob o `client_id` vai **também no header** de toda chamada. O `client_secret` **não é usado** (a segurança é o certificado).
+- O Sentus **não envia escopo** ao pedir o token (o campo `api.sentus.roles` não tem efeito no Sicoob). Veja [Pendências](#pendências).
+- Sem `api.url.*` do ambiente ativo, a operação falha com *"URL ... inválida"*.
+:::
+
+## Ambientes
+
+| | Sandbox | Produção |
+|-|---------|----------|
+| API Cobrança | `https://sandbox.sicoob.com.br/sicoob/sandbox/cobranca-bancaria/v3` | `https://api.sicoob.com.br/cobranca-bancaria/v3` |
+| Token | Token de teste fornecido no Portal (*Sandbox*) | `https://auth.sicoob.com.br/auth/realms/cooperado/protocol/openid-connect/token` |
+| Dados | Simulados (mocks) | Reais |
+| `client_id` | De teste (não vale em produção) | Do aplicativo de produção |
+
+:::warning[Sandbox do Sicoob]
+No sandbox o Portal fornece um **access token pronto** e um `client_id` de teste. Não é o mesmo fluxo de token por mTLS da produção.
+:::
+
+## Regras do Sicoob que o suporte precisa conhecer
+
+| Regra | Detalhe |
+|-------|---------|
+| Propriedades opcionais | A V3 **não aceita** campo opcional vazio ou nulo: ele deve ser **omitido**. Senão volta erro 400 |
+| `numeroContratoCobranca` | **Não enviar** no cadastro de boleto. Se vier errado, erro *"Número do contrato de cobrança inválido"* (o Sentus não envia) |
+| Valores fixos do Sentus | Emissão pelo banco (`1`), distribuição pelo banco (`1`), aceite `true`, parcela `1`, `gerarPdf=false` |
+| Limite de chamadas | Consultar boleto 20/s, incluir boleto 5/s, alterar 5/s, baixa e 2ª via 10/s, conta corrente 2/s |
+| Extrato | Um mês por chamada (o Sentus divide o período), filtrado por `diaInicial`/`diaFinal` e `numeroContaCorrente` |
+| Datas do webhook | Chegam em **UTC** (terminam em `Z`): converter para Brasília (UTC-3) |
+| Movimentações | Arquivos JSON de qualquer período de **2 dias** dentro de 1 ano; ficam 30 dias para download (o Sentus não usa) |
+
+## Webhook de cobrança (opcional)
+
+O evento é a **baixa operacional** (registro da intenção de pagamento, não a liquidação final). O Sentus recebe em:
+
+```
+POST https://<host-sentus>/sicoob/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` | Valor que o suporte define em `api.webhookAuth` no `params` do portador. Precisa ser idêntico ao da URL; se faltar ou diferir, o Sentus rejeita |
+
+### Cadastro do webhook no Sicoob
+
+Por API (*Cadastrar Webhook*, escopo `webhooks_inclusao`). Informe:
+
+| Campo | Valor |
+|-------|-------|
+| `url` | A URL acima. Deve ser **https**, porta **443** |
+| `codigoTipoMovimento` | `7` (Pagamento / baixa operacional) |
+| `codigoPeriodoMovimento` | `1` (Movimento atual, D0) |
+| e-mail | E-mail de contato |
+
+O cadastro devolve um `idWebhook`. Também há *Consultar Webhooks Cadastrados* e *Consultar Solicitações de um Webhook* (situação `3` = enviado, `6` = erro no envio).
+
+:::warning[Validação da URL]
+Ao cadastrar, alterar ou reativar, o Sicoob manda uma notificação de **validação** (`{"idWebhook": 990, "validacaoWebhook": true}`). A URL só é aceita se responder **200, 201 ou 204**. `202` ou redirecionamento (`302`) **reprovam**. Evite redirecionamentos e respostas assíncronas.
+:::
+
+## Checklist do suporte
+
+<div><label><input type="checkbox" /> Cliente é cooperado com contrato de cobrança e Pix habilitado na cooperativa</label></div>
+<div><label><input type="checkbox" /> Certificado A1 ICP-Brasil (e-CNPJ/e-CPF) válido, com chave privada guardada</label></div>
+<div><label><input type="checkbox" /> Aplicativo criado no Portal Developers com a API Cobrança Bancária e o certificado público anexado</label></div>
+<div><label><input type="checkbox" /> <code>client_id</code> em mãos e aplicativo aprovado (não está <em>Pendente</em>)</label></div>
+<div><label><input type="checkbox" /> Portador criado: banco 756, convênio (número do cliente), agência, conta, modalidade, zip com <code>.crt</code>/<code>.key</code></label></div>
+<div><label><input type="checkbox" /> <code>params</code> preenchidos (URLs, <code>grantType</code>, <code>client_id</code>)</label></div>
+<div><label><input type="checkbox" /> Se houver restrição por IP, IP público do Sentus cadastrado no aplicativo</label></div>
+<div><label><input type="checkbox" /> Teste de emissão, consulta, alteração e baixa</label></div>
+<div><label><input type="checkbox" /> Portador em <code>Ativo</code> com as URLs de produção</label></div>
+<div><label><input type="checkbox" /> Webhook cadastrado e validado (se o cliente quiser retorno automático)</label></div>
+<div><label><input type="checkbox" /> Data de vencimento do certificado anotada para a renovação</label></div>
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| `400` *"Client certificate is missing"* | Certificado ausente, diferente do cadastrado no aplicativo, ou acesso bloqueado |
+| `400` ao emitir/alterar | Campo opcional vazio ou nulo enviado, ou campo inválido |
+| `401 Unauthorized` | Certificado diferente do aplicativo, token expirado (mais de 5 min) ou falta de escopo |
+| *"Client certificates for mutual TLS ... does not match the registered certificate"* | Certificado inválido ou par `.crt`/`.key` incorreto |
+| `403` | Certificado **vencido** ou inválido; escopo inapropriado |
+| `404` | URL incorreta |
+| `ECONNRESET` | Falha de conexão: acionar o suporte do Sicoob com o `client_id` e o cURL |
+| *"Beneficiário não habilitado para utilizar o Pix."* | Boleto híbrido sem habilitação na cooperativa |
+| *"Associado não possui cadastro de Beneficiário."* | Cliente sem contrato de cobrança |
+| *"O número do contrato deve ser o mesmo número do cliente."* | Convênio informado diferente do código do cliente |
+| Aplicativo *Pendente* | Falta aprovação de preposto no App Sicoob ou Sicoobnet Empresarial |
+| Webhook não chega | Não cadastrado, URL não validada (`200/201/204`), ou `portAuth` diferente de `api.webhookAuth` |
+
+## Contatos Sicoob
+
+- Portal Developers: https://developers.sicoob.com.br/portal/ (contato e suporte: https://developers.sicoob.com.br/portal/contato)
+- WhatsApp: **(61) 4000-1111**, enviando `#API`; ou **Alice** no App Sicoob. Informar `client_id` e o cURL da requisição
+- Cooperativa do cliente: contrato de cobrança, número do cliente, habilitação do Pix
