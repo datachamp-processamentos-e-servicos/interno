@@ -6,65 +6,282 @@ description: Configuração de integração de boletos via API Sicredi
 
 # Sicredi
 
-Documentação de configuração da integração de boletos com a API do Sicredi.
+Este documento orienta o suporte na configuração do **portador Sicredi (código 748)** para clientes que vão usar a cobrança via API do Sentus.
 
 ## Visão geral
 
-A integração do Sicredi utiliza autenticação OAuth2 no fluxo `password`.
+- Autenticação: **OAuth2 `password`** (não é `client_credentials`). O "usuário" é o código do beneficiário + cooperativa e a "senha" é o **código de acesso** gerado no Internet Banking.
+- O token (`access_token`) expira em poucos minutos (exemplo do manual: 300 s) e o `refresh_token` em cerca de 30 min (exemplo: 1800 s). O Sentus renova pelo `refresh_token` e só refaz o login quando ele também expira.
+- Todas as chamadas levam `Authorization: Bearer <token>`, `x-api-key` e, na maioria, os headers **`cooperativa`** e **`posto`**.
+- **Não usa certificado digital (mTLS)** na cobrança. Só o **extrato** usa (ver [Extrato](#extrato-opcional)).
+- Operações suportadas no Sentus:
 
-A API é utilizada para:
+| Operação | Endpoint Sicredi |
+|----------|------------------|
+| Emitir (registrar) boleto | `POST /cobranca/boleto/v1/boletos` |
+| Consultar boleto | `GET /cobranca/boleto/v1/boletos?codigoBeneficiario&nossoNumero` |
+| Listar boletos liquidados do dia | `GET /cobranca/boleto/v1/boletos/liquidados/dia` |
+| Alterar boleto (vencimento, juros, seu número, desconto) | `PATCH /cobranca/boleto/v1/boletos/{id}/{campo}` |
+| Baixar boleto | `PATCH /cobranca/boleto/v1/boletos/{id}/baixa` |
+| PDF / 2ª via | `GET /cobranca/boleto/v1/boletos/pdf?linhaDigitavel=` |
+| Extrato de conta corrente (mTLS) | `GET /contacorrente/v1/extratos` |
+| Webhook de cobrança (Sicredi → Sentus) | `POST /sicredi/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` |
 
-- Emissão de boletos
-- Consulta de boletos
-- Baixa/cancelamento
-- Atualização de cobrança
+:::info[Identificador do boleto]
+O `{id}` é o **nosso número** retornado no registro (ex.: `251006142`). O PDF é pedido pela **linha digitável**.
+:::
 
----
+:::info[Comandos são assíncronos]
+Baixa e alterações respondem `202 Accepted` com `statusComando: MOVIMENTO_ENVIADO`. Isso significa que o Sicredi **recebeu** a instrução, não que ela já foi concluída. Consulte o boleto depois para confirmar.
+:::
 
-## Pré-requisitos
+## Pré-requisitos (cliente)
 
-Antes de iniciar a configuração, é necessário:
+:::warning[Sem estes itens não é possível configurar]
+O cliente precisa ter o produto **Cobrança contratado na modalidade API (Cobrança Online)** na cooperativa e acesso ao **Internet Banking com perfil Master**.
+:::
 
-- Possuir acesso ao Internet Banking do Sicredi
-- Possuir um APP cadastrado para API de cobrança
-- Ter usuário com permissão para cobrança bancária
+1. **Cobrança contratada na modalidade API (Cobrança Online)**, com o gerente da cooperativa. A contratação gera o **Código do Beneficiário** (código do convênio) e exige assinatura do termo de adesão.
+2. **Boleto híbrido (com Pix), se for usar:** pedir à cooperativa a habilitação da modalidade híbrida no Portal PJ. **Não é preciso contratar Pix** separado.
+3. **Conta no [Portal do Desenvolvedor Sicredi](https://developer.sicredi.com.br/)** e uma **aplicação** com as APIs *Cobrança* e *Autenticação de Parceiros*.
+4. **`x-api-key`** da aplicação (um para sandbox e outro para produção).
+5. **Código de acesso** gerado no Internet Banking (um por conta).
 
----
+### Passo a passo
 
-## Credenciais necessárias
+**1. Contratação (cooperativa)**
+- Contratar Cobrança, modalidade API, e obter o Código do Beneficiário.
 
-| Campo | Onde obter |
-|---|---|
-| `client_id` | Tela de lista de APPs |
-| `client_secret` | Tela de lista de APPs |
-| `developer_app_key` | Detalhes do APP → campo `Code` |
-| `username` | Beneficiário + Cooperativa |
-| `password` | Internet Banking → Cobrança → Código de Acesso → Gerar |
+**2. Aplicação e `x-api-key` (Portal do Desenvolvedor)**
+1. Criar conta ou fazer login e criar uma aplicação (sugestão de nome: `API Cobrança`).
+2. Selecionar as APIs **Cobrança** e **Autenticação de Parceiros**.
+3. Ao criar, o portal mostra o *Client ID*. O **`x-api-key`** só aparece depois de abrir um chamado de liberação em **Suporte > Abrir chamado**. Depois, fica em *Minhas Apps > (sua app) > Ver detalhes*, um por ambiente.
 
----
+**3. Código de acesso (Internet Banking)**
+1. Entrar no Internet Banking pela **conta vinculada ao convênio**, com perfil **Master**.
+2. *Cobrança > Código de Acesso > Gerar*. O menu só aparece para quem tem a modalidade API.
+3. Guardar o código: é a senha da autenticação.
 
-## Nome do APP
+:::warning[Atenção]
+- `x-api-key` e código de acesso são **diferentes** entre sandbox e produção.
+- O código de acesso é **por conta**. Cliente com mais de uma conta de cobrança precisa de **um portador (e um código) para cada conta**.
+- Não confunda `x-api-key` (identifica a aplicação) com `access_token` (autoriza a chamada).
+:::
 
-O nome do APP normalmente segue o padrão:
+## O que o cliente precisa ter em mãos
 
-```text
-API Cobrança (Coop) (Código Beneficiário) Produção
-```
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| Código do Beneficiário (5 dígitos) | Contratação / cooperativa | `Convênio` |
+| Cooperativa (4 dígitos) | Cooperativa | `Agência` |
+| Posto (2 dígitos, ex.: `03`) | Cooperativa | `Complemento` |
+| Usuário = Beneficiário (5) + Cooperativa (4), sem separador (ex.: `123456789`) | Montado a partir dos dois acima | `api.client_id` |
+| Código de acesso | Internet Banking (Cobrança > Código de Acesso) | `api.client_secret` |
+| `x-api-key` | Portal do Desenvolvedor (após chamado de liberação) | `api.appKey` |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
 
-## Configuração do Portador
+:::info[Código do Beneficiário]
+Cadastre com **todos os dígitos** (5 para o beneficiário, 4 para a cooperativa). Os códigos são texto: zero à esquerda importa (`0101`, não `101`).
+:::
 
-Exemplo de configuração:
+## Cadastro do portador no Sentus
 
-```
+| Campo | Valor |
+|-------|-------|
+| Banco | `Sicredi (748)` |
+| Convênio | Código do Beneficiário (5 dígitos) |
+| Agência | Cooperativa (4 dígitos) |
+| Complemento | Posto (2 dígitos) |
+| Cadastramento | `Registrada` |
+| Emissão / Distribuição do bloqueto | `Cliente` |
+| Espécie | `DM` (Duplicata Mercantil), salvo orientação do cliente |
+| Situação | `Homologação` ou `Ativo` (define o ambiente usado, ver abaixo) |
+
+Juros, multa, desconto e protesto seguem o combinado do cliente com a cooperativa.
+
+### Parâmetros (`params`)
+
+Exemplo para **Produção**:
+
+```properties
 api.ambiente=PRODUCAO
-
 api.url.auth=https://api-parceiro.sicredi.com.br/auth/openapi/token
-api.url.cob=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1
-
-api.developer_app_key=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-api.client_id=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-api.client_secret=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-
-api.user_name=XXXXXXXXX
-api.password=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+api.url.cob=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos
+api.url.cobConsulta=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos
+api.url.cobListar=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/liquidados/dia
+api.url.cobAlt=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos
+api.url.cobBaixa=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/{id}/baixa
+api.url.cobPdf=https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/pdf
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.sentus=true
+api.sentus.grantType=password
+api.sentus.roles=cobranca
+api.cob.context=COBRANCA
+api.appKey=COLE_O_X_API_KEY_DE_PRODUCAO
+api.client_id=BENEFICIARIO5_MAIS_COOPERATIVA4
+api.client_secret=COLE_O_CODIGO_DE_ACESSO
 ```
+
+Exemplo para **Homologação (Sandbox)**: mesmas chaves com sufixo `Hom` e o prefixo `/sb`:
+
+```properties
+api.ambiente=HOMOLOGACAO
+api.url.authHom=https://api-parceiro.sicredi.com.br/sb/auth/openapi/token
+api.url.cobHom=https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos
+api.url.cobConsultaHom=https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos
+api.url.cobListarHom=https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/liquidados/dia
+api.url.cobAltHom=https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos
+api.url.cobBaixaHom=https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/{id}/baixa
+api.url.cobPdfHom=https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/pdf
+api.sentus=true
+api.sentus.grantType=password
+api.sentus.roles=cobranca
+api.cob.context=COBRANCA
+api.appKey=COLE_O_X_API_KEY_DE_SANDBOX
+api.client_id=123456789
+api.client_secret=teste123
+```
+
+:::warning[Atenção]
+- O Sentus escolhe a URL pela **situação do portador**: `Homologação` usa as chaves `*Hom`; `Ativo` usa as de produção. Preencha as duas famílias se o cliente vai passar pelas duas etapas.
+- `{id}` é literal: o Sentus substitui pelo nosso número, **só em `cobBaixa`**. Em `cobAlt` o Sentus acrescenta `/{id}/{campo}` sozinho (não coloque `{id}` nessa URL).
+- `api.sentus.roles` deve ser `cobranca` e `api.cob.context` deve ser `COBRANCA` (vira o header `context` do token).
+- No Sentus, `api.client_id` é o **usuário** (beneficiário + cooperativa) e `api.client_secret` é o **código de acesso**. O Sicredi não usa `client_id`/`client_secret` no sentido OAuth tradicional.
+- Sem `api.url.*` do ambiente ativo, a operação falha com *"Url de ... inválida"*.
+:::
+
+## Ambientes
+
+| | Sandbox | Produção |
+|-|---------|----------|
+| Token | `https://api-parceiro.sicredi.com.br/sb/auth/openapi/token` | `https://api-parceiro.sicredi.com.br/auth/openapi/token` |
+| Base da API | `https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/` | `https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/` |
+| `x-api-key` e código de acesso | Próprios do sandbox | **Novos**, de produção |
+| Webhook e consulta v2 | **Não existem** | Disponíveis |
+
+Dados de teste do sandbox (públicos no manual do Sicredi):
+
+| Campo | Valor |
+|-------|-------|
+| Usuário (`api.client_id`) | `123456789` |
+| Senha (`api.client_secret`) | `teste123` |
+| Cooperativa / Posto | `6789` / `03` |
+| Código do Beneficiário | `12345` |
+
+:::info[Retornos do sandbox são fixos]
+Na consulta por nosso número e no PDF, o sandbox devolve **dados pré-montados**, não os que você enviou. Considere isso ao validar.
+:::
+
+## Regras do Sicredi que o suporte precisa conhecer
+
+| Regra | Detalhe |
+|-------|---------|
+| Códigos são texto | `codigoBeneficiario`, `cooperativa` e `posto` vão como texto. Número perde o zero à esquerda e a chamada falha |
+| Juros percentual | Exige o tipo (`DIARIO` ou `MENSAL`) |
+| Híbrido vira tradicional | Boleto `HIBRIDO` com data de início de juros ou multa é registrado **sem Pix**, sem aviso |
+| Endereço do pagador | Opcional, mas **obrigatório** se o beneficiário tem validação de CEP ou em protesto/negativação |
+| PDF / 2ª via | Não recalcula juros/multa alterados via API. Para encargos atualizados, emitir pelo Internet Banking |
+| Alterar desconto | O Sicredi não aceita valores e datas juntos: o Sentus faz **duas chamadas** |
+| Alterações suportadas no Sentus | Data de vencimento, juros, seu número, desconto e data de desconto |
+| Listagem | Liquidados **por dia**, 500 registros por página, limite de 20 chamadas por segundo |
+| Consulta | Limite de 15 chamadas por segundo |
+
+## Extrato (opcional)
+
+O extrato é **outra API**, com **outra autenticação** e **outro acesso**:
+
+| | Valor |
+|-|-------|
+| Autenticação | OAuth2 `client_credentials` sobre **mTLS**, escopo `contacorrente.extratos.consultar` |
+| Token (produção) | `https://mtls-api-parceiro.sicredi.com.br/thirdparty/auth/token` |
+| Extrato (produção) | `https://mtls-api-parceiro.sicredi.com.br/contacorrente/v1/extratos` |
+| Sandbox | `https://mtls-api-parceiro.sicredi.com.br/sb/...` (mesmos caminhos com `/sb`) |
+| Validade do token | 60 minutos |
+
+**Como o cliente consegue acesso**
+1. Manifestar interesse à **cooperativa** e responder o e-mail de adesão (cooperativa, conta, CPF/CNPJ, e-mail do portal, API desejada: Extrato, Saldo ou ambas).
+2. Receber o **ID de Adesão**, criar conta em https://sicredi.sensedia-devportal.com/pt/ e abrir chamado de acesso informando o ID.
+3. Em *Certificados e Credenciais*, registrar um **CSR** e baixar o **certificado assinado** e a **chave privada**.
+4. Testar no sandbox e pedir as **credenciais de produção** (Client ID e Client Secret) respondendo o e-mail de boas-vindas.
+
+:::tip[Já usa Multipag?]
+Quem já integra a API Multipag Pagamentos reaproveita certificado e credenciais. Basta pedir ao Sicredi a inclusão do escopo `contacorrente.extratos.consultar`.
+:::
+
+O Sentus envia `dataInicio` e `dataFim` (`yyyy-MM-dd`), `page` (começa em 0) e `size=100`, e lê as páginas até `totalPages`. Contas do core legado podem mostrar movimentos em D-1.
+
+## Webhook de cobrança (opcional)
+
+O Sicredi notifica **liquidações** (Pix, rede, compensação, cartório, estorno, entre outras). O Sentus recebe em:
+
+```
+POST https://<host-sentus>/sicredi/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
+```
+
+| Parâmetro | Origem |
+|-----------|--------|
+| `tenantId` | Identificador do tenant do cliente |
+| `portId` | ID do portador cadastrado |
+| `portAuth` | Valor que o suporte define em `api.webhookAuth` no `params` do portador. Precisa ser idêntico ao da URL; se faltar ou diferir, o Sentus rejeita |
+
+O Sentus responde `200` e sincroniza o título pelo `nossoNumero` do corpo.
+
+### Contratação do webhook no Sicredi
+
+A contratação é por API, **somente em produção** (não há sandbox), usando o token e o `x-api-key` de produção:
+
+```json
+POST https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/webhook/contrato/
+
+{
+  "cooperativa": "6789",
+  "posto": "03",
+  "codBeneficiario": "12345",
+  "eventos": ["LIQUIDACAO"],
+  "url": "https://<host-sentus>/sicredi/webhooks/cobranca/{tenantId}/{portId}/{portAuth}",
+  "urlStatus": "ATIVO",
+  "contratoStatus": "ATIVO"
+}
+```
+
+Consultar contratos: `GET /cobranca/boleto/v1/webhook/contratos/` (query `cooperativa`, `posto`, `beneficiario`). Alterar: `PUT /cobranca/boleto/v1/webhook/contrato/{id}`. Status possíveis: `ATIVO`, `INATIVO`, `BLOQUEADO`.
+
+:::warning[Requisitos do endpoint]
+- HTTPS com certificado **não autoassinado** e TLS 1.2.
+- Responder `200` em até **10 segundos**; senão o evento fica "NÃO ENTREGUE".
+- O Sicredi não assina o webhook. O contrato aceita `header`/`token` opcionais, mas o Sentus **não valida** esses campos: a proteção é o `portAuth` na URL.
+:::
+
+## Checklist do suporte
+
+<div><label><input type="checkbox" /> Cobrança contratada na modalidade API e Código do Beneficiário em mãos</label></div>
+<div><label><input type="checkbox" /> Aplicação criada no Portal com as APIs Cobrança e Autenticação de Parceiros</label></div>
+<div><label><input type="checkbox" /> <code>x-api-key</code> liberado (chamado aberto) para sandbox e produção</label></div>
+<div><label><input type="checkbox" /> Código de acesso gerado no Internet Banking (perfil Master), um por conta</label></div>
+<div><label><input type="checkbox" /> Portador criado: banco 748, convênio, cooperativa em Agência, posto em Complemento</label></div>
+<div><label><input type="checkbox" /> <code>params</code> preenchidos (URLs, <code>roles=cobranca</code>, <code>context=COBRANCA</code>, <code>appKey</code>, usuário e código de acesso)</label></div>
+<div><label><input type="checkbox" /> Teste no sandbox (dados de teste): emitir, consultar, alterar, baixar, PDF</label></div>
+<div><label><input type="checkbox" /> Credenciais de produção aplicadas e portador ajustado para <code>Ativo</code></label></div>
+<div><label><input type="checkbox" /> Webhook contratado em produção (se o cliente quiser retorno automático)</label></div>
+<div><label><input type="checkbox" /> Extrato: adesão, certificado e credenciais mTLS obtidos (se o cliente usar extrato)</label></div>
+
+## Erros comuns
+
+| Sintoma | Causa provável |
+|---------|----------------|
+| `400` na autenticação | `grant_type` ausente ou inválido |
+| `401` na autenticação | Usuário/código de acesso errados, `x-api-key` ausente/inválido ou de outro ambiente |
+| `404` na autenticação | URL de autenticação incorreta |
+| `504` | Timeout do gateway do Sicredi: tentar de novo |
+| `401` nas chamadas | Token expirado, `x-api-key` errado ou do outro ambiente |
+| Falha no registro com `codigoBeneficiario`/`cooperativa`/`posto` | Zero à esquerda perdido (código enviado como número) |
+| Boleto híbrido sem QR Code | Foi enviada data de início de juros/multa, ou a modalidade híbrida não está habilitada |
+| Baixa/alteração aceita mas boleto não mudou | Comandos são assíncronos (`202`): consultar de novo depois |
+| Webhook não chega | Não contratado, sem HTTPS válido, mais de 10 s para responder ou `portAuth` diferente de `api.webhookAuth` |
+| `403` no extrato | Escopo `contacorrente.extratos.consultar` ausente no perfil |
+
+## Contatos Sicredi
+
+- Cooperativa do cliente: contratação, modalidade híbrida, ID de adesão do extrato
+- Portal do Desenvolvedor: https://developer.sicredi.com.br/ (menu **Suporte > Abrir chamado**, inclusive para liberar o `x-api-key`)
+- Documentação: https://developers.sicredi.com.br/public/docs/getting-started-billing
