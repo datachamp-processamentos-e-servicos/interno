@@ -1,0 +1,216 @@
+---
+title: Itaú
+sidebar_label: Itaú
+---
+
+# Itaú
+
+Este documento orienta o suporte na configuração do **portador Itaú (código 341)** para clientes que vão usar a cobrança via API do Sentus.
+
+## Visão geral
+
+- API usada: **Boletos – Emissão e Instrução** (nome técnico `cash_management` v2). É a API de cobrança **sem QR Code**.
+- Autenticação: **OAuth2 `client_credentials` com mTLS**. O token (`access_token`) vale **300 s (5 min)** e **não há `refresh_token`**: o Sentus pede um token novo quando expira.
+- O certificado é o **certificado dinâmico** emitido pelo Itaú. O **CN do certificado é o `client_id`**.
+- Toda chamada leva `Authorization: Bearer <token>` e **`x-itau-apikey` = `client_id`** (não é uma chave separada).
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint Itaú |
+|----------|---------------|
+| Emitir (registrar) boleto | `POST /cash_management/v2/boletos` |
+| Consultar boleto | `GET /cash_management/v2/boletos?id_beneficiario&codigo_carteira&nosso_numero&view=specific` |
+| Listar boletos | `GET /cash_management/v2/boletos?id_beneficiario&codigo_carteira&view=full` (filtros: `nosso_numero`, `data_inclusao`) |
+| Alterar boleto | `PATCH /cash_management/v2/boletos/{id}/{campo}` (um endpoint por campo) |
+| Baixar boleto | `PATCH /cash_management/v2/boletos/{id}/baixa` (sem corpo) |
+
+:::warning[O que o Sentus não faz para o Itaú]
+Não há **webhook**, **extrato**, **PDF/2ª via** nem **boleto com QR Code (Bolecode/Pix)**. O boleto é impresso pelo próprio Sentus a partir da linha digitável e do código de barras retornados. A baixa por pagamento só é sabida consultando ou listando os boletos.
+:::
+
+:::info[Alterações aceitas]
+`abatimento`, `data_vencimento`, `valor_nominal`, `data_limite_pagamento`, `seu_numero`, `juros`, `multa` e `desconto`. Qualquer outro campo é recusado pelo Sentus.
+:::
+
+## Pré-requisitos (cliente)
+
+:::warning[Sem estes itens não é possível configurar]
+Conta corrente **PJ no Itaú** com **Cobrança contratada** e acesso ao **Portal Itaú for Developers**. A credencial é concedida **por CNPJ**, e o CNPJ deve ser **o mesmo da conta corrente** onde os boletos serão registrados.
+:::
+
+1. **Cobrança contratada** na conta, sem pendência de contrato, sem conta migrada ou sustada. Quem resolve é o gerente da conta (Cash/Empresas).
+2. **Acesso ao [Portal Itaú for Developers](https://devportal.itau.com.br/)**: cadastro próprio (autocadastro) ou convite de um usuário administrador. Sem contrato assinado, o catálogo de soluções só abre depois de falar com o comercial.
+3. **Credenciais e certificado dinâmico da API de Cobrança** (passo a passo abaixo). Elas são **específicas da API de cobrança**: não servem as credenciais de Pix, Extrato ou da NF-e.
+4. **Um computador** com Windows, Linux ou macOS e uma linguagem instalada (Java recomendado; também Python, Node.js, Go ou C#) para rodar a ferramenta do Itaú. Não precisa saber programar.
+
+### Passo a passo: credenciais e certificado
+
+O Itaú entrega uma ferramenta (zip no portal, página [Obter credenciais e emitir o certificado dinâmico](https://devportal.itau.com.br/certificado-dinamico)). O processo tem 4 etapas:
+
+1. **Gerar par de chaves.** A ferramenta cria `private.pem` e `public.pem`. Enviar a **chave pública** ao **Analista de Operações Itaú**. Nunca enviar a privada.
+2. **Receber e-mail do Itaú** com 3 valores cifrados: *Client ID*, *Token temporário* e *Chave de sessão*. Colar na ferramenta, que gera o certificado e mostra o **Client Secret**.
+3. **Testar o token** pela própria ferramenta (etapa 3).
+4. **Renovar** (etapa 4) quando faltar menos de 30 dias. Exige o *Token STS* de renovação.
+
+Arquivos gerados na etapa 2:
+
+| Arquivo | Uso |
+|---------|-----|
+| `certificado.crt` | Certificado assinado pelo Itaú |
+| `ARQUIVO_CHAVE_PRIVADA.key` | Chave privada do certificado |
+| `certificado.pfx` | Opcional. **Não é usado pelo Sentus** (o Sentus lê `.crt` e `.key`) |
+| `client_id.txt` | Client ID |
+
+:::danger[O Client Secret aparece uma única vez]
+Na etapa 2 a ferramenta mostra o **Client Secret** uma só vez e não o guarda. Se ele não for copiado na hora, é preciso refazer todo o processo. Peça ao cliente para guardar em local seguro antes de fechar a ferramenta.
+:::
+
+:::warning[Validade do certificado]
+O certificado vale **365 dias**. A renovação só pode ser feita **de 30 dias antes até 1 dia antes** do vencimento. Certificado vencido não renova: exige gerar tudo de novo. Anote a data de vencimento de cada cliente.
+:::
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| Agência (4 dígitos) | Conta Itaú | `Agência` |
+| Conta e DAC (ver [pendência 1](#pendências)) | Conta Itaú | `Conta` e `DV` |
+| Carteira (ex.: `109`) | Gerente Itaú, contrato de cobrança | `Carteira` |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
+| Client ID (também é o CN do certificado) | E-mail do Itaú, decifrado pela ferramenta | `api.client_id` e `api.appKey` |
+| Client Secret | Mostrado uma vez na etapa 2 da ferramenta | `api.client_secret` |
+| `certificado.crt` + `ARQUIVO_CHAVE_PRIVADA.key` | Etapa 2 da ferramenta | Zip no portador (ver abaixo) |
+
+:::info[Faixa de IP]
+Se o cliente restringe acesso por firewall, ele precisa liberar os IPs do Itaú (tabela em [Cadeia de certificados](#cadeia-de-certificados-e-endereços)). O contrário (liberar IP do Sentus no Itaú) não foi citado na documentação pública.
+:::
+
+## Cadastro do portador no Sentus
+
+1. Cadastrar o portador com **Banco = Itaú (341)**, Agência, Conta, DV, Carteira e Documento.
+2. Em **Conteúdo**, anexar um **zip** contendo **exatamente um `.crt` e um `.key`**. O Sentus procura os arquivos pela extensão.
+3. Preencher os `params` (próxima seção).
+4. Situação **Homologação** usa as URLs `*Hom` e envia o boleto em modo **validação**. Situação **Ativo** usa as URLs de produção e **registra de verdade**.
+
+## Parâmetros (`params`)
+
+Produção:
+
+```properties
+api.ambiente=PROD
+api.url.auth=https://sts.itau.com.br/api/oauth/token
+api.url.cob=https://api.gateway.itau.com.br/cash_management/v2/boletos
+api.url.cobConsulta=https://api.gateway.itau.com.br/cash_management/v2/boletos
+api.url.cobListar=https://api.gateway.itau.com.br/cash_management/v2/boletos
+api.url.cobAlt=https://api.gateway.itau.com.br/cash_management/v2/boletos
+api.url.cobBaixa=https://api.gateway.itau.com.br/cash_management/v2/boletos/{id}/baixa
+api.client_id=<client_id>
+api.client_secret=<client_secret>
+api.appKey=<client_id>
+```
+
+Homologação (ver [Ambientes](#ambientes-e-homologação)): as mesmas chaves com sufixo `Hom`, apontando para o sandbox (a confirmar) ou para as URLs de produção (`api.url.authHom`, `api.url.cobHom`, `api.url.cobConsultaHom`, `api.url.cobListarHom`, `api.url.cobAltHom`, `api.url.cobBaixaHom`).
+
+| Chave | Observação |
+|-------|------------|
+| `api.url.auth` | Mesma URL do STS para os dois ambientes |
+| `api.url.cob` | URL **sem** `{id}`: é o `POST` de registro |
+| `api.url.cobAlt` | Base **sem** `{id}`. O Sentus acrescenta `/{id}/{campo}` |
+| `api.url.cobBaixa` | Tem `{id}` no meio. O Sentus substitui |
+| `api.appKey` | **Preencher com o mesmo valor do `client_id`** (a baixa só lê este campo) |
+| `api.sentus.roles` | Não é usado no Itaú (o token mTLS não envia `scope`) |
+| `api.cob.context`, `api.sentus`, `api.webhookAuth` | Não se aplicam ao Itaú |
+
+## Ambientes e homologação
+
+:::warning[Sandbox a confirmar]
+Há dois caminhos de teste e **nenhum deles foi confirmado na documentação oficial**:
+- **Sandbox do Itaú.** As URLs `*Hom` apontam para `https://sandbox.devportal.itau.com.br/itau-ep9-gtw-cash-management-ext-v2/v2/boletos` (endereço citado nos testes do Sentus). Já houve teste nele pela equipe.
+- **Modo `validacao`.** O guia do CIGAM (de terceiros) diz que o Itaú não tem ambiente de testes desde 2022 e que o teste é feito enviando o boleto em modo `validacao` na URL de produção.
+
+O Sentus já envia `validacao` sempre que o portador está em Homologação.
+:::
+
+| | Homologação | Produção |
+|---|-------------|----------|
+| Situação do portador | Homologação | Ativo |
+| `etapa_processo_boleto` enviada | `validacao` | `efetivacao` |
+| Boleto fica registrado | **Não** (só valida os campos) | Sim |
+| Consultar, listar, alterar, baixar | **Não** funciona (não há boleto registrado) | Sim |
+
+Para homologar: configurar o portador com as URLs `*Hom` (sandbox ou, se o sandbox não responder, as de produção), emitir um boleto e conferir que o Itaú aceita o payload. Depois mudar a situação para **Ativo**.
+
+A tabela acima vale para o modo `validacao` em produção. No sandbox, o comportamento de consulta, alteração e baixa ainda não foi documentado.
+
+## Webhook
+
+O Sentus **não tem webhook para o Itaú**. A confirmação de pagamento depende de consulta ou listagem. O portal do Itaú menciona certificado de webhook para outras APIs, mas não há implementação no Sentus.
+
+## Regras do Itaú aplicadas pelo Sentus
+
+- **Nosso número:** até 8 caracteres, completado com zeros à esquerda (exigido na carteira 109).
+- **Seu número:** até 10 caracteres. **Uso do beneficiário:** 25 caracteres, só letras e números.
+- **Valores:** 15 inteiros + 2 decimais, sem separador (R$ 10,00 = `00000000000001000`). **Percentuais:** 7 inteiros + 5 decimais.
+- **Mensagens:** até 3, de 50 caracteres. **Nome do pagador:** até 50 caracteres.
+- **Juros e multa:** se o título não tiver, o Sentus envia **isento** (`05` e `03`).
+- **Desconto:** um único tipo por boleto e até 3 faixas.
+- **Protesto e negativação:** o Itaú aceita só um dos dois ativo.
+- **Espécie:** o tipo do título é convertido para a tabela do Itaú. Tipo sem equivalente vira `99` (Diversos).
+- **Pagamento parcial / recebimento divergente:** `01` qualquer valor, `02` entre mínimo e máximo, `03` não aceita.
+- **Baixa e alterações só no dia seguinte:** o registro é instantâneo, mas o Itaú recusa baixa ou alteração **no mesmo dia** do registro ("Atualização não permitida na mesma data de emissão do título").
+- **Listagem:** só aceita nosso número exato e data de inclusão exata. Qualquer outro filtro gera erro no Sentus.
+
+## Checklist de configuração
+
+<ul style={{listStyle: 'none', paddingLeft: 0}}>
+<li><input type="checkbox" /> Cobrança contratada na conta, no mesmo CNPJ da credencial</li>
+<li><input type="checkbox" /> Cliente com acesso ao Portal Itaú for Developers</li>
+<li><input type="checkbox" /> Chave pública enviada ao Analista de Operações e e-mail com credenciais cifradas recebido</li>
+<li><input type="checkbox" /> Client ID, Client Secret, <code>.crt</code> e <code>.key</code> guardados (Secret só aparece uma vez)</li>
+<li><input type="checkbox" /> Etapa 3 da ferramenta (teste de token) executada com sucesso</li>
+<li><input type="checkbox" /> Data de vencimento do certificado anotada (365 dias; renovar a partir de 30 dias antes)</li>
+<li><input type="checkbox" /> Agência, Conta, DV e Carteira no portador conforme a pendência 1</li>
+<li><input type="checkbox" /> Zip com <code>.crt</code> e <code>.key</code> anexado no portador</li>
+<li><input type="checkbox" /> <code>params</code> preenchidos, com <code>api.appKey</code> igual ao <code>client_id</code></li>
+<li><input type="checkbox" /> Teste em homologação (<code>validacao</code>) aceito pelo Itaú</li>
+<li><input type="checkbox" /> Portador em Ativo, primeiro boleto real emitido</li>
+<li><input type="checkbox" /> Baixa/alteração só testadas a partir do dia seguinte ao registro</li>
+</ul>
+
+## Cadeia de certificados e endereços
+
+O Itaú trocou a cadeia de certificados (CA) das APIs e passou a usar endereços novos. Isso é **separado** do certificado mTLS do cliente, que **não precisa ser trocado**. Quem precisa agir é o **servidor do Sentus** (truststore e firewall).
+
+| Endereço antigo | Endereço novo | Vencimento do antigo |
+|-----------------|---------------|----------------------|
+| `secure.api.itau` | `secure.gateway.api.itau` | 15/09/2026 |
+| `api.itau.com.br` | `api.gateway.itau.com.br` | 18/10/2026 |
+| `api-bin.itau.com.br` | `api-bin.gateway.itau.com.br` | 02/11/2026 |
+
+- A API de cobrança usa `api.gateway.itau.com.br` (já refletido nos `params` acima).
+- Os certificados do Itaú passam a valer **200 dias** (100 dias a partir de 15/03/2027).
+- Teste de validação: `https://api.gateway.itau.com.br/sandbox/ca-validation`, com token e `x-itau-apikey`.
+- Quem restringe saída por IP precisa liberar os intervalos novos informados na [página do comunicado](https://devportal.itau.com.br/certificados-apis-expiracao-2026).
+
+## Erros comuns
+
+| Sintoma | Causa provável | O que fazer |
+|---------|----------------|-------------|
+| `Client Id não configurado para integração com Itaú` | `api.client_id` vazio | Preencher |
+| NPE ou erro de header na **baixa** | `api.appKey` vazio | Preencher com o `client_id` |
+| Erro ao montar conexão mTLS | Zip sem `.crt` ou `.key`, ou certificado vencido | Conferir o zip e a validade |
+| Falha de SSL/TLS em todas as chamadas | Servidor sem a nova cadeia (CA) do Itaú | Importar a cadeia no truststore |
+| `403` / `Authentication Failed` / `explicit deny` | Credencial ou certificado de outra API, CNPJ diferente da conta, `x-itau-apikey` errado | Conferir `client_id` e que a credencial é a de **Cobrança** |
+| `Atualização não permitida na mesma data de emissão do título` | Baixa/alteração no dia do registro | Repetir no dia seguinte |
+| Erro de agência/conta | `id_beneficiario` fora de 12 caracteres | Ver pendência 1 |
+| Boleto não encontrado na consulta | Portador em homologação (`validacao` não registra) | Testar em Ativo |
+| `O Itaú não suporta filtrar por ...` | Filtro de listagem não existente no Itaú | Usar só nosso número ou data de inclusão |
+| Token recusado | Certificado vencido ou Client Secret trocado | Renovar o certificado ou refazer as credenciais |
+
+## Contatos
+
+- **Analista de Operações Itaú:** quem recebe a chave pública e envia as credenciais cifradas. Normalmente o cliente chega nele pelo **gerente de Cash/Empresas**.
+- **Portal:** [devportal.itau.com.br](https://devportal.itau.com.br/), com *Abrir um chamado*, *Erros comuns* e *Status das APIs*.
+- **Itaú Empresas e Middle:** (11) 4090 1685 (capital) ou 0800 770 1685.
+- **Agro, Imob, Large e Infra&Energia:** (11) 3004 9451 ou 0800 720 9451.
+- **Parceiros e Tecnologia:** (11) 3003 9483 ou 0800 702 9483.
+- **E-mail:** contatoitau@itau-unibanco.com.br.
