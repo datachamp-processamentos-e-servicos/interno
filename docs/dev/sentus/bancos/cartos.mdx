@@ -1,0 +1,218 @@
+---
+title: Cartos
+sidebar_label: Cartos
+---
+
+# Cartos
+
+Este documento orienta o suporte na configuração do **portador Banco Cartos (código 324)** para clientes que vão usar a cobrança via API do Sentus.
+
+A Cartos é uma **Conta Digital (BaaS)**. O boleto é emitido **a partir de uma conta digital da Cartos** do cliente, pela [API Conta Digital v2](https://docs.cartos.com.br/api-conta-digital-v2).
+
+## Visão geral
+
+- Autenticação: **login administrativo** (`api-clients/login`), com `clientId` + `clientSecret` + conta. Não é OAuth2 padrão. A resposta traz um `token` (Bearer).
+- Todas as chamadas levam `Authorization: Bearer <token>`, **`x-api-key`** e **`device_id`** (um valor aleatório que o Sentus gera a cada chamada).
+- O `x-api-key` tem o formato **`clientId#<clientId>`** (a palavra `clientId`, o `#` e o valor do client id).
+- **Não usa certificado digital (mTLS).** A segurança é por **IP fixo** cadastrado na Cartos.
+- Operações suportadas no Sentus:
+
+| Operação | Endpoint Cartos (`https://api.cartos.solutions/digital-account/v1`) |
+|----------|--------------------------------------------------|
+| Login administrativo | `POST /users/api-clients/login` |
+| Emitir (registrar) boleto | `POST /bank-slip-manager` |
+| Consultar boleto | `GET /bank-slip-manager/{bankSlipId}` |
+| Listar boletos | `GET /bank-slip-manager` |
+| Alterar boleto | `PUT /bank-slip-manager` (o id vai no corpo) |
+| Baixar (cancelar) boleto | `POST /bank-slip-manager/write-off` |
+| PDF / 2ª via | `GET /bank-slip-manager/bank-slip/download/{bankSlipId}` |
+| Webhook de pagamento (Cartos → Sentus) | `POST /cartos/webhooks/cobranca/{tenantId}/{portId}/{portAuth}` |
+
+:::info[Identificador do boleto]
+O `{bankSlipId}` é o **ID do boleto na Cartos** (ex.: `00000000`), guardado no Sentus como *CollectionId*. É ele que identifica o boleto em consulta, listagem, alteração, baixa, PDF e webhook. O **nosso número** (`ourNumber`) é outro dado.
+:::
+
+:::info[Alterações aceitas]
+Só **data de vencimento**, **valor nominal** e **abatimento**. A API da Cartos tem um único endpoint de edição que recebe o estado completo: o Sentus marca como alterada (`A`) só a seção de pagamento e as demais como mantidas (`M`).
+:::
+
+:::warning[O que o Sentus não faz para a Cartos]
+O Sentus **não cria** conta, convênio nem beneficiário/pagador na Cartos. Isso precisa estar feito **antes** de cadastrar o portador. Também não há extrato nem alteração de juros, multa ou desconto.
+:::
+
+## Pré-requisitos (cliente)
+
+:::warning[Sem estes itens não é possível configurar]
+Cliente com **conta digital aberta e aprovada na Cartos**, com **convênio de boletos** criado e **acesso administrativo à API** liberado.
+:::
+
+1. **Conta digital Cartos aprovada.** A abertura (PF ou PJ) segue o fluxo de onboarding da Cartos.
+2. **Acesso administrativo (client id e client secret).** É liberado **sob demanda**: o cliente pede aos gestores da Conta Digital da Cartos. O registro é feito pelos administradores e exige **pelo menos um IP fixo** de onde a aplicação vai chamar a API (o IP de saída do Sentus).
+3. **Convênio de boletos** na conta (`POST /bank-slip-agreement`): define baixa automática (`automaticLow`, 1 a 60 dias após o vencimento ou 180 dias se não houver) e valores padrão de desconto, juros, multa e abatimento.
+4. **Beneficiário e pagador cadastrados** (`POST /bank-slip/people`, `peopleType = beneficiary` ou `payer`). O beneficiário leva a agência.
+5. **Webhook** apontando para o Sentus (ver [Webhook](#webhook)).
+
+:::warning[Gere um novo token depois de contratar o convênio]
+Segundo a Cartos, depois de criar o convênio é preciso **gerar um novo token**, porque a informação do convênio é gravada no próprio token. Se o portador já estava em uso, o Sentus precisa fazer um login novo.
+:::
+
+:::info[Client id e client secret são um par fixo]
+A Cartos gera **duas chaves únicas e imutáveis**. Se o cliente pedir um novo par, o anterior **deixa de funcionar**: é preciso atualizar o portador no Sentus.
+:::
+
+## O que o cliente precisa ter em mãos
+
+| Dado | Onde obter | Campo no Sentus |
+|------|------------|-----------------|
+| Agência (ex.: `1`) | Dados da conta digital | `Agência` |
+| Número da conta (ex.: `00000000000-0`) | Dados da conta digital | `Conta` |
+| Carteira (`1` a `5`) | Convênio / gestor Cartos | `Carteira` |
+| `clientId` | Cartos (acesso administrativo) | `api.client_id` |
+| `clientSecret` | Cartos (acesso administrativo) | `api.client_secret` |
+| `accountId` (UUID da conta) | Resposta do login ou gestor Cartos | `api.accountId` |
+| `x-api-key` = `clientId#` + `clientId` | Montado a partir do `clientId` | `api.appKey` |
+| ID do pagador/beneficiário (ver [pendência 1](#pendências)) | `POST /bank-slip/people` | `api.payerBenefiaryId` |
+| CNPJ/CPF do beneficiário | Cadastro da empresa | `Documento` |
+
+## Cadastro do portador no Sentus
+
+1. Cadastrar o portador com **Banco = Banco CARTOS (324)**, Agência, Conta, Carteira e Documento.
+2. **Não precisa de zip com certificado.**
+3. Preencher os `params` (próxima seção).
+4. Situação **Homologação** usa as URLs `*Hom`. Situação **Ativo** usa as de produção.
+
+## Parâmetros (`params`)
+
+A Cartos usa o **mesmo host nos dois ambientes**: `https://api.cartos.solutions`. Por isso as URLs de homologação (`*Hom`) são **iguais** às de produção.
+
+Exemplo para **Produção**:
+
+```properties
+api.ambiente=PRODUCAO
+api.url.auth=https://api.cartos.solutions/digital-account/v1/users/api-clients/login
+api.url.cob=https://api.cartos.solutions/digital-account/v1/bank-slip-manager
+api.url.cobConsulta=https://api.cartos.solutions/digital-account/v1/bank-slip-manager/{bankSlipId}
+api.url.cobListar=https://api.cartos.solutions/digital-account/v1/bank-slip-manager
+api.url.cobAlt=https://api.cartos.solutions/digital-account/v1/bank-slip-manager
+api.url.cobBaixa=https://api.cartos.solutions/digital-account/v1/bank-slip-manager/write-off
+api.url.cobPdf=https://api.cartos.solutions/digital-account/v1/bank-slip-manager/bank-slip/download/{bankSlipId}
+api.cob.context=COBRANCA
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+api.appKey=clientId#COLE_O_CLIENT_ID
+api.accountId=COLE_O_ACCOUNT_ID
+api.payerBenefiaryId=COLE_O_ID_DO_PAGADOR_BENEFICIARIO
+```
+
+Exemplo para **Homologação**: mesmas chaves com sufixo `Hom` e **os mesmos valores** (mesmo host):
+
+```properties
+api.ambiente=HOMOLOGACAO
+api.url.authHom=https://api.cartos.solutions/digital-account/v1/users/api-clients/login
+api.url.cobHom=https://api.cartos.solutions/digital-account/v1/bank-slip-manager
+api.url.cobConsultaHom=https://api.cartos.solutions/digital-account/v1/bank-slip-manager/{bankSlipId}
+api.url.cobListarHom=https://api.cartos.solutions/digital-account/v1/bank-slip-manager
+api.url.cobAltHom=https://api.cartos.solutions/digital-account/v1/bank-slip-manager
+api.url.cobBaixaHom=https://api.cartos.solutions/digital-account/v1/bank-slip-manager/write-off
+api.url.cobPdfHom=https://api.cartos.solutions/digital-account/v1/bank-slip-manager/bank-slip/download/{bankSlipId}
+api.cob.context=COBRANCA
+api.webhookAuth=CHAVE_DEFINIDA_PELO_SUPORTE
+api.client_id=COLE_O_CLIENT_ID
+api.client_secret=COLE_O_CLIENT_SECRET
+api.appKey=clientId#COLE_O_CLIENT_ID
+api.accountId=COLE_O_ACCOUNT_ID
+api.payerBenefiaryId=COLE_O_ID_DO_PAGADOR_BENEFICIARIO
+```
+
+:::warning[Chaves de produção não levam sufixo `Prod`]
+O Sentus lê produção em `api.url.cob`, `api.url.auth` etc. (**sem** sufixo) e homologação em `api.url.cobHom`, `api.url.authHom` etc. Chaves como `api.url.cobProd` ou `api.url.authProd` **não são lidas**: com o portador em **Ativo**, o Sentus responderá "URL de Produção inválida".
+:::
+
+| Chave | Observação |
+|-------|------------|
+| `api.url.cobConsulta`, `api.url.cobPdf` | Têm um marcador `{bankSlipId}`: o Sentus troca pelo id do boleto |
+| `api.cob.context` | Não é usado pela Cartos (pode ficar `COBRANCA` ou vazio) |
+| `api.url.cobAlt`, `api.url.cobBaixa` | **Sem** `{id}`: o id vai no corpo |
+| `api.appKey` | **Precisa ser `clientId#<clientId>`**, igual ao usado no login. Só o login monta isso sozinho |
+| `api.accountId` | UUID da conta. A Cartos também aceita `accountNumber`, mas o Sentus usa o `accountId` |
+| `api.sentus.roles` | Não é usado na Cartos |
+
+:::danger[`api.appKey` errado derruba tudo, exceto o login]
+O login do Sentus monta o `x-api-key` sozinho (`clientId#` + `clientId`), então o token vem normalmente. Já emitir, consultar, listar, alterar, baixar e PDF usam **o valor de `api.appKey` como está**. Se o campo estiver só com o `clientId` (sem o `clientId#`), o login funciona e **todas as demais chamadas falham**.
+:::
+
+## Ambientes e homologação
+
+Homologação e produção usam o **mesmo host** (`https://api.cartos.solutions`). O que muda é o portador:
+
+- O Sentus só diferencia ambientes pela **situação do portador** (Homologação lê as chaves `*Hom`, Ativo lê as sem sufixo). Como os valores são iguais, a diferença é só de controle interno.
+- Boleto emitido com o portador em Homologação, **usando credenciais de uma conta real**, é um **boleto real** na Cartos. Para testar sem efeito real, a Cartos precisa fornecer credenciais de teste.
+
+## Webhook
+
+- O Sentus recebe a notificação em: `POST /cartos/webhooks/cobranca/{tenantId}/{portId}/{portAuth}`.
+- A Cartos **não envia credenciais** no webhook. A origem é validada pelos três valores da URL: `tenantId`, `portId` e `portAuth`. O `portAuth` precisa ser igual a **`api.webhookAuth`** do portador.
+- Evento tratado: **`transaction.SlipPaymentReceipt`** (categoria `BANKSLIPRECEIPT`), disparado quando um boleto emitido é pago.
+- O Sentus lê **`data.data.transactionData.bankSlipId`** e sincroniza o título por esse id. Responde `200`. Se o corpo não for JSON válido ou não trouxer `bankSlipId`, responde `404`.
+- A Cartos faz até **10 tentativas, com 10 minutos de intervalo**, se o webhook falhar.
+
+URL a informar à Cartos (substituir os valores):
+
+```text
+https://<host-do-sentus>/cartos/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
+```
+
+## Regras da Cartos aplicadas pelo Sentus
+
+- **Valores em centavos:** `value` é inteiro (R$ 1,00 = `100`).
+- **Datas:** `AAAA-MM-DD` na emissão. Na listagem, `DD-MM-AAAA`.
+- **Tipo do título (`titleCodeType`):** vai o código FEBRABAN do título (de 1 a 9, sem zero à esquerda). **Boleto de proposta (`32`)** exige isenção de multa e juros.
+- **Carteira (`wallet`):** de 1 a 5, vem do campo Carteira do portador.
+- **Moeda:** sempre `BRL`. **Impressão (`printType`):** sempre `client`.
+- **Mensagem:** só a primeira mensagem do título (limite da Cartos: 100 caracteres).
+- **Desconto:** só o primeiro desconto do título.
+- **Dias de multa e de juros:** diferença entre a data da multa/juros e o vencimento.
+- **Protesto:** os códigos 1, 2, 4 e 5 viram `protest = true`; os demais, `false`.
+- **Baixa:** o motivo enviado é sempre `others`, com a observação "Baixa solicitada via sistema".
+- **PDF:** a Cartos devolve uma **URL temporária** (S3). O Sentus baixa o arquivo nessa URL e devolve o PDF.
+- **Listagem:** filtros aceitos: `limit`, `lastKey`, `ourNumber`, `status`, `payerDocument` e datas de vencimento. A paginação é por `lastKey`, não por página.
+
+## Checklist de configuração
+
+<ul style={{listStyle: 'none', paddingLeft: 0}}>
+<li><input type="checkbox" /> Conta digital Cartos aberta e aprovada</li>
+<li><input type="checkbox" /> Acesso administrativo liberado (<code>clientId</code> e <code>clientSecret</code> recebidos)</li>
+<li><input type="checkbox" /> IP de saída do Sentus cadastrado na Cartos</li>
+<li><input type="checkbox" /> Convênio de boletos criado e novo token gerado depois dele</li>
+<li><input type="checkbox" /> Beneficiário e pagador cadastrados na Cartos</li>
+<li><input type="checkbox" /> Chaves de produção sem sufixo <code>Prod</code> (<code>api.url.cob</code>, <code>api.url.auth</code> etc.)</li>
+<li><input type="checkbox" /> Portador cadastrado: Agência, Conta, Carteira e Documento</li>
+<li><input type="checkbox" /> <code>params</code> preenchidos, com <code>api.appKey</code> no formato <code>clientId#clientId</code></li>
+<li><input type="checkbox" /> Login testado e boleto emitido em homologação</li>
+<li><input type="checkbox" /> Webhook informado à Cartos com <code>portAuth</code> igual a <code>api.webhookAuth</code></li>
+<li><input type="checkbox" /> Portador em Ativo e primeiro boleto real emitido e pago</li>
+</ul>
+
+## Erros comuns
+
+| Sintoma | Causa provável | O que fazer |
+|---------|----------------|-------------|
+| `Falha na autenticação Cartos. Status: ...` | `clientId`, `clientSecret` ou `accountId` errados; IP não cadastrado | Conferir os três e o IP de saída |
+| Login ok, mas emissão/consulta falham com 401/403 | `api.appKey` sem o prefixo `clientId#` | Usar `clientId#<clientId>` |
+| Convênio não reconhecido logo após criá-lo | Token antigo, sem o convênio | Gerar novo token (novo login) |
+| Chave nova da Cartos e nada funciona | O par antigo foi invalidado | Atualizar `api.client_id` e `api.client_secret` |
+| Erro de validação na emissão (`details` ou `ocorrencias`) | Campo obrigatório vazio ou valor fora do domínio | Ler a mensagem. O Sentus mostra o campo e a mensagem |
+| Boleto de proposta recusado | Multa ou juros informados | Enviar isento |
+| Webhook responde `404` | Corpo sem `bankSlipId` ou JSON inválido | Conferir o payload do evento e a URL |
+| Webhook não sincroniza | `portAuth` diferente de `api.webhookAuth` | Corrigir a URL ou o parâmetro |
+| PDF vazio/erro | URL temporária expirada | Pedir o PDF de novo |
+| `transaction-security-token` exigido | Conta com PIN de transações | Ver pendência 5 |
+
+## Contatos
+
+- **Central de atendimento Cartos:** WhatsApp (11) 3900-2980 ou telefone 4003-9850.
+- **Comercial:** (11) 3388-1500.
+- **Gestores da Conta Digital:** quem libera o acesso administrativo (client id/secret) e o IP fixo. Normalmente o cliente chega neles pelo gerente de relacionamento.
+- **Documentação:** [docs.cartos.com.br/api-conta-digital-v2](https://docs.cartos.com.br/api-conta-digital-v2).
+
