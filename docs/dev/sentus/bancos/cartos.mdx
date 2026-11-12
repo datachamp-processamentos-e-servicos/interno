@@ -158,7 +158,7 @@ Homologação e produção usam o **mesmo host** (`https://api.cartos.solutions`
 - O Sentus lê **`data.data.transactionData.bankSlipId`** e sincroniza o título por esse id. Responde `200`. Se o corpo não for JSON válido ou não trouxer `bankSlipId`, responde `404`.
 - A Cartos faz até **10 tentativas, com 10 minutos de intervalo**, se o webhook falhar.
 
-URL a informar à Cartos (substituir os valores):
+URL a informar ao banco Cartos (substituir os valores):
 
 ```text
 https://<host-do-sentus>/cartos/webhooks/cobranca/{tenantId}/{portId}/{portAuth}
